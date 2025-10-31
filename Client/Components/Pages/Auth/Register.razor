@@ -1,0 +1,61 @@
+﻿@page "/register"
+@using Client.Services
+@layout EmptyLayout
+@rendermode InteractiveServer
+@inject AuthService AuthService
+@inject NavigationManager nav
+
+<div class="d-flex justify-content-center align-items-center" style="height: 100vh;">
+    <div class="flex-column col-12 col-md-4 gap-4 justify-content-center align-items-center p-4 border rounded shadow-sm">
+        <h3 class="text-center">Register</h3>
+
+        <label for="email">Email</label>
+        <input type="email" name="email" @bind-value="Email" class="form-control" placeholder="Your Email Here" autofocus />
+
+        <label for="password">Password</label>
+        <input type="password" name="password" @bind-value="Password" class="form-control" placeholder="Your Password Here" required />
+
+        <label for="role">Role</label>
+        <select name="role" @bind="Role" class="form-control" required>
+            <option value="">Select Role</option>
+            <option value="Admin">Admin</option>
+            <option value="User">User</option>
+            <option value="Manager">Manager</option>
+        </select>
+
+		<div class="flex-column gap-4">
+			<span>Already have an account? <a href="/login">Login here</a></span>
+        </div>
+
+
+        <button class="btn btn-primary mt-4" type="submit" @onclick="handleRegister" disabled="@isSubmitting">Register</button>
+
+        @if (!string.IsNullOrEmpty(errorMessage))
+        {
+            <div class="text-danger mt-2">@errorMessage</div>
+        }
+    </div>
+</div>
+
+@code {
+    public string Email { get; set; }
+    public string Password { get; set; }
+    public string Role { get; set; }
+    private bool isSubmitting { get; set; } = false;
+    private string errorMessage { get; set; }
+
+    private async Task handleRegister()
+    {
+        isSubmitting = true;
+        var status = await AuthService.Register(Email, Password, Role);
+        if (status)
+        {
+            nav.NavigateTo("/login");
+        }
+        else
+        {
+            errorMessage = "Failed to register. Please try again.";
+        }
+        isSubmitting = false;
+    }
+}
