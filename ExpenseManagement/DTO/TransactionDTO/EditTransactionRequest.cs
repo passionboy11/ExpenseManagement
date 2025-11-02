@@ -4,8 +4,6 @@
 
     public class EditTransactionRequest
     {
-        [Required]
-        public int UserId { get; set; }
         public int Id { get; set; }
         public decimal Amount { get; set; }
         public string Type { get; set; }

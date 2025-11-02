@@ -2,6 +2,7 @@ using Dapper;
 using ExpenseManagement.DTO;
 using ExpenseManagement.Models;
 using MySqlConnector;
+using Budget = ExpenseManagement.Models.Budget;
 
 namespace ExpenseManagement.Infrastructure
 {
@@ -139,7 +140,7 @@ namespace ExpenseManagement.Infrastructure
                                                 WHERE UserId = @UserId AND Id = @Id";
             var result = connection.Execute(sql, new
             {
-                Id = request.Id,
+                request.Id,
                 UserId = userId,
                 request.Amount,
                 request.Type,
@@ -162,8 +163,7 @@ namespace ExpenseManagement.Infrastructure
             });
             Console.WriteLine($"Deleting Transaction Id={request.Id} for UserId={userId}");
             Console.WriteLine($"Rows affected: {result}");
-
-
+            
             return result > 0;
             
         }   
@@ -179,5 +179,61 @@ namespace ExpenseManagement.Infrastructure
 
             return result;
         }
+
+        public bool CreateBudget(ExpenseManagement.DTO.Budget budget, int userId)
+        {
+            if(userId == 0)
+                throw new InvalidOperationException("UserId must be set");
+            
+            var sql = @"INSERT INTO Budgets ( UserId, Category, LimitAmount, MonthYear) 
+                        VALUES (@UserId, @Category, @LimitAmount, @MonthYear)";
+
+            var result = connection.Execute(sql, new
+            {
+                UserId = userId,
+                budget.Category,
+                budget.LimitAmount,
+                budget.MonthYear
+            });
+            
+            return result > 0;
+        }
+
+        public bool EditBudget(ExpenseManagement.DTO.EditBudget budget, int userId)
+        {
+            var sql = @"UPDATE Budgets SET Category = @Category, LimitAmount = @LimitAmount, MonthYear = @MonthYear WHERE UserId = @UserId AND Id = @Id";
+
+            var result = connection.Execute(sql, new
+            {
+                budget.Id,
+                UserId = userId,
+                budget.Category,
+                budget.LimitAmount,
+                budget.MonthYear,
+            });
+            return result > 0;
+        }
+
+        public bool DeleteBudget(ExpenseManagement.DTO.DeleteBudget budget, int userId)
+        {
+            var sql =  @"DELETE FROM Budgets WHERE  UserId = @UserId AND Id = @Id";
+            var result = connection.Execute(sql, new
+            {
+                budget.Id,
+                UserID = userId
+            });
+            return result > 0;
+        }
+
+        public IEnumerable<Budget> ReadBudget(int userId)
+        {
+            var sql = @"SELECT * FROM Budgets WHERE UserId = @UserId";
+            var result = connection.Query<Budget>(sql, new
+            {
+                UserId = userId
+            });
+            return result;
+        }
+        
     }
 }

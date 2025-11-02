@@ -1,46 +1,49 @@
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
-using System.Text;
+using ExpenseManagement.ExceptionHandler;
 using ExpenseManagement.Extension;
 using ExpenseManagement.Infrastructure;
-using ExpenseManagement.Infrastructure;
+using ExpenseManagement.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-
 builder.Services.AddControllers();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+
+// Register global exception handler
+builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
+// Swagger setup
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerAuth();
+builder.Services.AddSwaggerAuth(); // Make sure this configures JWT support in Swagger
+
+// Authentication & Authorization
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(opt =>
+    {
+        opt.RequireHttpsMetadata = true;
+        opt.TokenValidationParameters = new TokenValidationParameters
+        {
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:SecretKey"])),
+            ValidIssuer = builder.Configuration["Jwt:Issuer"],
+            ValidAudience = builder.Configuration["Jwt:Audience"],
+            ClockSkew = TimeSpan.Zero
+        };
+    });
 
 builder.Services.AddAuthorization();
-// registers authentication services in the app
-builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(opt =>
-{
-    // Forces the app to accept token only over HTTPS
-    opt.RequireHttpsMetadata = true;
-    opt.TokenValidationParameters = new TokenValidationParameters
-    {
-        // Defines the secret key used to validate the token's signature
-        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:SecretKey"])),
-        // Ensures the token was issued by trusted issuer
-        ValidIssuer = builder.Configuration["Jwt:Issuer"],
-        // Ensures the token was meant for this application
-        ValidAudience = builder.Configuration["Jwt:Audience"],
-        // By default ASP.NET allows 5 minute clock skew to handle server time difference
-        // Setting it to zero means the token expires exactly at its expiration time
-        ClockSkew = TimeSpan.Zero,
-    };
-});
 
+// Service registrations
+builder.Services.AddScoped<IBudgetService, BudgetService>();
+builder.Services.AddScoped<ITransactionService, TransactionService>();
 builder.Services.AddScoped<DataAccess>();
 builder.Services.AddScoped<TokenProvider>();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+// Middleware pipeline
+app.UseExceptionHandler(opt => { });
+// Use Swagger in Development
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -49,8 +52,12 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+// **Order matters**: Authentication must come before Authorization
+app.UseAuthentication();
 app.UseAuthorization();
 
+// Map controller endpoints
 app.MapControllers();
 
+// Run the application
 app.Run();
