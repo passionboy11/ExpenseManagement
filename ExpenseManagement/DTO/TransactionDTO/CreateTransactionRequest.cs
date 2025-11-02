@@ -1,8 +1,9 @@
+using Newtonsoft.Json;
+
 namespace ExpenseManagement.DTO;
 
 public class CreateTransactionRequest
 {
-    public int UserId { get; set; }
     public decimal Amount { get; set; }
     public string Type { get; set; } = "Expense"; // or "Income"
     public string Category { get; set; } = string.Empty;
