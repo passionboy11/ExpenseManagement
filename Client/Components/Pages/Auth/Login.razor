@@ -42,7 +42,7 @@
         var status = await AuthService.Login(Email, Password);
         if (status)
         {
-            nav.NavigateTo("/");
+            nav.NavigateTo("/dashboard");
         }
         else
         {

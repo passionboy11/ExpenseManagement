@@ -25,6 +25,9 @@ public class TokenProvider
         this.configuration = configuration;
     }
 
+
+    //Use Random opaque string for refresh token generation and hash and store it securely in a database.
+
     public Token GenerateToken(UserAccount userAccount)
     {
         var accessToken = GenerateAccessToken(userAccount);

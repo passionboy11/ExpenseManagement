@@ -9,12 +9,17 @@
     <link rel="stylesheet" href="app.css" />
     <link rel="stylesheet" href="Client.styles.css" />
     <link rel="icon" type="image/png" href="favicon.png" />
+    <RadzenTheme Theme="material"/>
     <HeadOutlet />
 </head>
 
 <body>
     <Routes />
+    <script src="js/cookies.js"></script>
     <script src="_framework/blazor.web.js"></script>
+
+    <script src="_content/Radzen.Blazor/Radzen.Blazor.js?v=@(typeof(Radzen.Colors).Assembly.GetName().Version)"></script>
+
 </body>
 
 </html>
