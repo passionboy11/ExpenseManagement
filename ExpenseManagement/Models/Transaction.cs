@@ -19,8 +19,7 @@ public class Transaction
     public decimal Amount { get; set; }
 
     [Required]
-    public string Type { get; set; } = string.Empty; // "Income" or "Expense"
-
+    public bool IsExpense { get; set; } 
     [Required]
     public string Category { get; set; } = string.Empty;
 

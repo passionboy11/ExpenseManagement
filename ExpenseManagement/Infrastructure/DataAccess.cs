@@ -112,12 +112,12 @@ namespace ExpenseManagement.Infrastructure
         public bool CreateTransaction(CreateTransactionRequest request, int userId)
         {
             var sql =
-                "INSERT INTO Transactions (UserId,Amount,Type,Category,Description,PaymentMethod,IsRecurring,Date) VALUES (@UserId,@Amount,@Type,@Category,@Description,@PaymentMethod,@IsRecurring,@Date)";
+                "INSERT INTO Transactions (UserId,Amount,IsExpense,Category,Description,PaymentMethod,IsRecurring,Date) VALUES (@UserId,@Amount,@IsExpense,@Category,@Description,@PaymentMethod,@IsRecurring,@Date)";
             var result = connection.Execute(sql, new
             {
                 UserId = userId,
                 request.Amount,
-                request.Type,
+                request.IsExpense,
                 request.Category,
                 request.Description,
                 request.PaymentMethod,
@@ -131,7 +131,7 @@ namespace ExpenseManagement.Infrastructure
         public bool EditTransaction(EditTransactionRequest request, int userId)
         {
             var sql = @"UPDATE Transactions SET Amount = @Amount, 
-                                                Type= @Type, 
+                                                IsExpense= @IsExpense, 
                                                 Category = @Category, 
                                                 PaymentMethod = @PaymentMethod, 
                                                 Description = @Description,
@@ -143,7 +143,7 @@ namespace ExpenseManagement.Infrastructure
                 request.Id,
                 UserId = userId,
                 request.Amount,
-                request.Type,
+                request.IsExpense,
                 request.Category,
                 request.Description,
                 request.PaymentMethod,
@@ -233,6 +233,38 @@ namespace ExpenseManagement.Infrastructure
                 UserId = userId
             });
             return result;
+        }
+
+        public decimal GetUserBalance(int id)
+        {
+            var sql = @"SELECT Balance FROM UserAccounts WHERE Id = @Id";
+            return connection.QuerySingleOrDefault<decimal>(sql, new { Id = id });
+        }
+
+        public bool UpdateUserBalance(int id, decimal amountChange)
+        {
+            var sql = @"UPDATE UserAccounts
+                SET Balance = Balance + @AmountChange
+                WHERE Id = @Id";
+            var result = connection.Execute(sql, new { Id = id, AmountChange = amountChange });
+            Console.WriteLine($"Balance changed for UserId={id} and AmountChange={amountChange}");
+            return result > 0;
+        }
+
+        public decimal GetBudgetUsage(int userId, string category)
+        {
+            var sql = @"SELECT IFNULL(SUM(Amount), 0)
+                FROM Transactions
+                WHERE UserId = @UserId AND IsExpense = 1 AND Category = @Category";
+            return connection.QuerySingleOrDefault<decimal>(sql, new { UserId = userId, Category = category });
+        }
+
+        public decimal GetBudgetLimit(int userId, string category)
+        {
+            var sql = @"SELECT LimitAmount
+                FROM Budgets
+                WHERE UserId = @UserId AND Category = @Category";
+            return connection.QuerySingleOrDefault<decimal>(sql, new { UserId = userId, Category = category });
         }
         
     }

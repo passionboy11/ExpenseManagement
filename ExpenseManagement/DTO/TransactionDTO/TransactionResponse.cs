@@ -4,7 +4,7 @@ public class TransactionResponse
 {
     public int Id { get; set; }
     public decimal Amount { get; set; }
-    public string Type { get; set; }
+    public bool IsExpense { get; set; } 
     public string Category { get; set; } = string.Empty;
     public string? Description { get; set; }
     public string? PaymentMethod { get; set; }

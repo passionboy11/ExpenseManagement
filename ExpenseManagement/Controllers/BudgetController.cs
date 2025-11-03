@@ -8,7 +8,7 @@ using ExpenseManagement.Services;
 
 namespace ExpenseManagement.Controllers;
 
-[Route("api/[controller]")]
+[Route("[controller]")]
 [ApiController]
 public class BudgetController : ControllerBase
 {
