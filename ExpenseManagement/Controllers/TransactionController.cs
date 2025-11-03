@@ -66,7 +66,7 @@ public class TransactionController : ControllerBase
     }
    
     [Authorize]
-    [HttpGet("gettransaction")]
+    [HttpGet("readtransaction")]
     public IActionResult ReadTransaction()
     {
      var emailClaim = User.FindFirst(ClaimTypes.Name)?.Value;
