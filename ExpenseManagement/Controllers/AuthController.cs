@@ -26,11 +26,11 @@ namespace ExpenseManagement.Controllers
             var result = dataAccess.RegisterUser(request.Email, hashedPassword, request.Role);
             if (result)
             {
-<<<<<<< HEAD
+
                 return Ok(new {message = "User Registered Successfully"});
-=======
+
                 return Ok("User created successfully");
->>>>>>> 7a7095938b579b209c424988f3918f9d0e66265b
+
             }
             else
             {

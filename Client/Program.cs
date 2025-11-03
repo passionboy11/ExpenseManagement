@@ -13,6 +13,7 @@ builder.Services.AddRazorComponents()
 builder.Services.AddScoped<CookieService>();
 builder.Services.AddScoped<AccessTokenService>();
 builder.Services.AddScoped<AuthService>();
+builder.Services.AddScoped<TransactionService>();
 builder.Services.AddHttpClient("ApiClient", opt =>
 {
     opt.BaseAddress = new Uri("https://localhost:7246/api/");
