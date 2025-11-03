@@ -20,11 +20,8 @@ namespace ExpenseManagement.Infrastructure
 
         public void Dispose()
         {
-            if (connection != null)
-            {
                 connection.Dispose();
-                connection = null;
-            }
+            
         }
 
         public bool RegisterUser(string email, string password, string role)
@@ -177,6 +174,13 @@ namespace ExpenseManagement.Infrastructure
                 UserId = userId,
             });
 
+            return result;
+        }
+
+        public IEnumerable<Transaction> ReadAllTransactions()
+        {
+            var sql = @"SELECT * FROM Transactions";
+            var result = connection.Query<Transaction>(sql);
             return result;
         }
 
