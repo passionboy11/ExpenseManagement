@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ExpenseManagement.Controllers;
-[Route("api/[controller]")]
+[Route("[controller]")]
 [ApiController]
 public class ResourceController : ControllerBase
 {

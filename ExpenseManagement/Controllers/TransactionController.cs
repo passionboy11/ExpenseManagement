@@ -11,7 +11,7 @@ namespace ExpenseManagement.Controllers;
 // usercontext class 
 // iusercontext interface 
 // get user email role bata sidhai name dios
-[Route("api/[controller]")]
+[Route("[controller]")]
 [ApiController]
 public class TransactionController : ControllerBase
 {
@@ -21,7 +21,7 @@ public class TransactionController : ControllerBase
     this.transactionService = transactionService;
    }
  
-  [Authorize]
+  [Authorize(Roles = "User")]
   [HttpPost("createtransaction")]
   public IActionResult CreateTransaction([FromBody] CreateTransactionRequest request)
    {
@@ -33,7 +33,11 @@ public class TransactionController : ControllerBase
      {
       return BadRequest(new{Message= result.Message});
      }
-     return Ok(new{Message="Transaction created successfully"});
+     return Ok(new
+     {
+      Message = result.Message,
+      Alert = result.Alert
+     });
    }
    
     [Authorize]
@@ -80,7 +84,19 @@ public class TransactionController : ControllerBase
 
      return Ok(new { Message = result.Message, Data = result.Data });
     }
-   
+    
+    [Authorize]
+    [HttpGet("getbalance")]
+    public IActionResult GetBalance()
+    {
+      var emailClaim = User.FindFirst(ClaimTypes.Name)?.Value;
+      var result = transactionService.GetBalance(emailClaim);
+      if (!result.Success)
+       {
+        return BadRequest(new{Message= result.Message});
+       }
+      return Ok(new { Message = result.Message, Data = result.Data });
+     }
    
 }
  

@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace ExpenseManagement.Controllers
 {
-    [Route("api/controller")]
+    [Route("[controller]")]
     [ApiController]
     public class AuthController : ControllerBase
     {
@@ -26,16 +26,20 @@ namespace ExpenseManagement.Controllers
             var result = dataAccess.RegisterUser(request.Email, hashedPassword, request.Role);
             if (result)
             {
+<<<<<<< HEAD
                 return Ok(new {message = "User Registered Successfully"});
+=======
+                return Ok("User created successfully");
+>>>>>>> 7a7095938b579b209c424988f3918f9d0e66265b
             }
             else
             {
-                return BadRequest();
+                return BadRequest("Failed to register user");
             }
 
         }
 
-        [HttpPost]
+        [HttpPost("Login")]
         public ActionResult<AuthResponse> Login(AuthRequest request)
         {
             AuthResponse response = new AuthResponse();
