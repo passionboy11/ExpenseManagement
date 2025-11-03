@@ -1,5 +1,8 @@
 using Client.Components;
+using Client.Security;
 using Client.Services;
+using Microsoft.AspNetCore.Components.Authorization;
+using Radzen;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -15,7 +18,15 @@ builder.Services.AddHttpClient("ApiClient", opt =>
     opt.BaseAddress = new Uri("https://localhost:7246/api/");
 });
 
+builder.Services.AddAuthorization();
+builder.Services.AddAuthentication()
+    .AddScheme<CustomOption, JWTAuthenticationHandler>("JWTAuth", options => { });
+builder.Services.AddScoped<JWTAuthenticationStateProvider>();
+builder.Services.AddScoped<AuthenticationStateProvider, JWTAuthenticationStateProvider>();
+builder.Services.AddCascadingAuthenticationState();
 
+
+builder.Services.AddRadzenComponents();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

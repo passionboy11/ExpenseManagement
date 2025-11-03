@@ -1,8 +1,197 @@
 ﻿@page "/transactions"
 @layout SidebarLayout
 
-<h3>Transaction</h3>
+@using System.Globalization
+
+<RadzenContent ContainerClass="p-4">
+    <h3 class="mb-3">💰 Transactions</h3>
+
+    <!-- Action Bar -->
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <RadzenTextBox @bind-Value="searchTerm" Placeholder="Search by description..." Style="width:250px" />
+            <RadzenButton Icon="search" Click="ApplyFilters" Class="ms-2" />
+        </div>
+
+        <RadzenButton Text="Add Transaction" Icon="add_circle" Click="() => ShowAddDialog()" Style="background:#1976d2;color:white" />
+    </div>
+
+    <!-- Filters -->
+    <div class="row mb-3">
+        <div class="col-md-3">
+            <RadzenDropDown Data="@TransactionTypes" @bind-Value="selectedType" Placeholder="Type" />
+        </div>
+        <div class="col-md-3">
+            <RadzenDropDown Data="@Categories" @bind-Value="selectedCategory" Placeholder="Category" />
+        </div>
+        <div class="col-md-3">
+            <RadzenDatePicker @bind-Value="startDate" Placeholder="From Date" />
+        </div>
+        <div class="col-md-3">
+            <RadzenDatePicker @bind-Value="endDate" Placeholder="To Date" />
+        </div>
+    </div>
+
+    <!-- Data Grid -->
+    <RadzenDataGrid TItem="Transaction" Data="@FilteredTransactions" AllowPaging="true" PageSize="8"
+                    AllowSorting="true" AllowFiltering="false" RowSelect="OnRowSelect">
+        <Columns>
+            <RadzenDataGridColumn TItem="Transaction" Property="Date" Title="Date" FormatString="{0:MMM dd, yyyy}" />
+            <RadzenDataGridColumn TItem="Transaction" Property="Description" Title="Description" />
+            <RadzenDataGridColumn TItem="Transaction" Property="Category" Title="Category" />
+            <RadzenDataGridColumn TItem="Transaction" Property="Amount" Title="Amount" FormatString="{0:C}" />
+            <RadzenDataGridColumn TItem="Transaction" Title="Type">
+                <Template Context="data">
+                    @if (data.Amount >= 0)
+                    {
+                        <RadzenBadge Text="Income" Style="background:green;color:white;" />
+                    }
+                    else
+                    {
+                        <RadzenBadge Text="Expense" Style="background:red;color:white;" />
+                    }
+                </Template>
+            </RadzenDataGridColumn>
+            <RadzenDataGridColumn TItem="Transaction" Title="Actions">
+                <Template Context="data">
+                    <RadzenButton Icon="edit" Size="ButtonSize.Small" Click="() => EditTransaction(data)" Class="me-2" />
+                    <RadzenButton Icon="delete" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Danger" Click="() => DeleteTransaction(data)" />
+                </Template>
+            </RadzenDataGridColumn>
+        </Columns>
+    </RadzenDataGrid>
+</RadzenContent>
+
+<!-- Dialogs -->
+<RadzenDialog @bind-Visible="isDialogVisible" Title="@dialogTitle" Width="500px">
+    <EditForm Model="@editingTransaction" OnValidSubmit="SaveTransaction">
+        <RadzenTemplateForm TItem="Transaction">
+            <ChildContent Context="formData">
+                <RadzenTextBox @bind-Value="editingTransaction.Description" Name="Description" Placeholder="Description" Style="width:100%" />
+                <br />
+                <RadzenNumeric @bind-Value="editingTransaction.Amount" Name="Amount" Placeholder="Amount" Style="width:100%" />
+                <br />
+                <RadzenDropDown Data="@Categories" @bind-Value="editingTransaction.Category" Name="Category" Placeholder="Category" Style="width:100%" />
+                <br />
+                <RadzenDatePicker @bind-Value="editingTransaction.Date" Name="Date" Style="width:100%" />
+                <br />
+                <div class="d-flex justify-content-end">
+                    <RadzenButton Text="Cancel" Click="() => isDialogVisible = false" Class="me-2" />
+                    <RadzenButton Text="Save" ButtonStyle="ButtonStyle.Primary" Submit="true" />
+                </div>
+            </ChildContent>
+        </RadzenTemplateForm>
+    </EditForm>
+</RadzenDialog>
 
 @code {
+    private List<Transaction> allTransactions = new()
+    {
+        new() { Id = 1, Description = "Salary", Category = "Income", Amount = 3000, Date = DateTime.Today.AddDays(-1) },
+        new() { Id = 2, Description = "Rent", Category = "Housing", Amount = -1000, Date = DateTime.Today.AddDays(-2) },
+        new() { Id = 3, Description = "Groceries", Category = "Food", Amount = -200, Date = DateTime.Today.AddDays(-3) },
+        new() { Id = 4, Description = "Internet Bill", Category = "Utilities", Amount = -50, Date = DateTime.Today.AddDays(-4) },
+        new() { Id = 5, Description = "Freelance Project", Category = "Income", Amount = 500, Date = DateTime.Today.AddDays(-5) }
+    };
 
+    private List<Transaction> FilteredTransactions => ApplyAllFilters();
+
+    private string? searchTerm;
+    private string? selectedType;
+    private string? selectedCategory;
+    private DateTime? startDate;
+    private DateTime? endDate;
+
+    private List<string> TransactionTypes = new() { "Income", "Expense" };
+    private List<string> Categories = new() { "Income", "Food", "Housing", "Utilities", "Transport", "Other" };
+
+    private bool isDialogVisible = false;
+    private string dialogTitle = "";
+    private Transaction editingTransaction = new();
+
+    private void ShowAddDialog()
+    {
+        editingTransaction = new Transaction() { Date = DateTime.Today };
+        dialogTitle = "Add Transaction";
+        isDialogVisible = true;
+    }
+
+    private void EditTransaction(Transaction t)
+    {
+        editingTransaction = new Transaction
+        {
+            Id = t.Id,
+            Description = t.Description,
+            Amount = t.Amount,
+            Category = t.Category,
+            Date = t.Date
+        };
+        dialogTitle = "Edit Transaction";
+        isDialogVisible = true;
+    }
+
+    private void SaveTransaction()
+    {
+        if (editingTransaction.Id == 0)
+        {
+            editingTransaction.Id = allTransactions.Max(t => t.Id) + 1;
+            allTransactions.Add(editingTransaction);
+        }
+        else
+        {
+            var index = allTransactions.FindIndex(t => t.Id == editingTransaction.Id);
+            allTransactions[index] = editingTransaction;
+        }
+
+        isDialogVisible = false;
+        StateHasChanged();
+    }
+
+    private void DeleteTransaction(Transaction t)
+    {
+        allTransactions.Remove(t);
+    }
+
+    private void OnRowSelect(Transaction t)
+    {
+        Console.WriteLine($"Selected: {t.Description}");
+    }
+
+    private void ApplyFilters()
+    {
+        StateHasChanged();
+    }
+
+    private List<Transaction> ApplyAllFilters()
+    {
+        IEnumerable<Transaction> data = allTransactions;
+
+        if (!string.IsNullOrWhiteSpace(searchTerm))
+            data = data.Where(t => t.Description.Contains(searchTerm, StringComparison.OrdinalIgnoreCase));
+
+        if (!string.IsNullOrWhiteSpace(selectedCategory))
+            data = data.Where(t => t.Category == selectedCategory);
+
+        if (!string.IsNullOrWhiteSpace(selectedType))
+            data = selectedType == "Income"
+                ? data.Where(t => t.Amount > 0)
+                : data.Where(t => t.Amount < 0);
+
+        if (startDate.HasValue)
+            data = data.Where(t => t.Date >= startDate.Value);
+
+        if (endDate.HasValue)
+            data = data.Where(t => t.Date <= endDate.Value);
+
+        return data.ToList();
+    }
+
+    public class Transaction
+    {
+        public int Id { get; set; }
+        public string Description { get; set; }
+        public string Category { get; set; }
+        public decimal Amount { get; set; }
+        public DateTime Date { get; set; }
+    }
 }

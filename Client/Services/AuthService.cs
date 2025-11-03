@@ -20,7 +20,7 @@ namespace Client.Services
         }
         public async Task<bool> Login(string email, string password)
         {
-            var status = await client.PostAsJsonAsync("auth/login", new { email, password });
+            var status = await client.PostAsJsonAsync("controller", new { email, password });
             if (status.IsSuccessStatusCode)
             {
                 var token = await status.Content.ReadAsStringAsync();

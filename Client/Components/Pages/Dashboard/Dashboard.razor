@@ -1,5 +1,158 @@
 ﻿@page "/dashboard"
-
 @layout SidebarLayout
+@using System.Globalization
 
-<h1 class="mt-4">Dashboard</h1>
+<RadzenContent ContainerClass="p-4">
+    <h3 class="mb-4">📊 Dashboard Overview</h3>
+
+    <div class="row mb-4">
+        <div class="col-md-3 col-sm-6 mb-3">
+            <RadzenCard Style="background:#E8F5E9">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <strong>Total Income</strong>
+                        <p class="text-success fs-5 fw-bold">@TotalIncome.ToString("C", CultureInfo.CurrentCulture)</p>
+                    </div>
+                    <RadzenIcon Icon="trending_up" Style="font-size:36px;color:green;" />
+                </div>
+            </RadzenCard>
+        </div>
+
+        <div class="col-md-3 col-sm-6 mb-3">
+            <RadzenCard Style="background:#FFEBEE">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <strong>Total Expense</strong>
+                        <p class="text-danger fs-5 fw-bold">@TotalExpense.ToString("C", CultureInfo.CurrentCulture)</p>
+                    </div>
+                    <RadzenIcon Icon="trending_down" Style="font-size:36px;color:red;" />
+                </div>
+            </RadzenCard>
+        </div>
+
+        <div class="col-md-3 col-sm-6 mb-3">
+            <RadzenCard Style="background:#E3F2FD">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <strong>Net Savings</strong>
+                        <p class="text-primary fs-5 fw-bold">@NetSavings.ToString("C", CultureInfo.CurrentCulture)</p>
+                    </div>
+                    <RadzenIcon Icon="savings" Style="font-size:36px;color:#1976d2;" />
+                </div>
+            </RadzenCard>
+        </div>
+
+        <div class="col-md-3 col-sm-6 mb-3">
+            <RadzenCard Style="background:#FFF8E1">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <strong>Active Users</strong>
+                        <p class="text-warning fs-5 fw-bold">@ActiveUsers</p>
+                    </div>
+                    <RadzenIcon Icon="people" Style="font-size:36px;color:orange;" />
+                </div>
+            </RadzenCard>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-md-8 mb-3">
+            <RadzenCard>
+                <h5>Income vs Expense Trend</h5>
+                <RadzenChart Style="height:300px">
+                    <RadzenLineSeries Data="@MonthlyData" CategoryProperty="Month" Title="Income" ValueProperty="Income" Smooth="true" />
+                    <RadzenLineSeries Data="@MonthlyData" CategoryProperty="Month" Title="Expense" ValueProperty="Expense" Smooth="true" />
+                    <RadzenCategoryAxis />
+                    <RadzenValueAxis />
+                </RadzenChart>
+            </RadzenCard>
+        </div>
+
+        <div class="col-md-4 mb-3">
+            <RadzenCard>
+                <h5>Expense Breakdown</h5>
+                <RadzenPieChart Style="height:300px" Data="@ExpenseCategories" CategoryProperty="Category" ValueProperty="Percentage" />
+            </RadzenCard>
+        </div>
+    </div>
+
+    <RadzenCard>
+        <h5>Recent Transactions</h5>
+        <RadzenDataGrid Data="@Transactions" TItem="Transaction" Class="mt-2" PageSize="5" AllowPaging="true">
+            <Columns>
+                <RadzenDataGridColumn TItem="Transaction" Property="Date" Title="Date" FormatString="{0:MMM dd, yyyy}" />
+                <RadzenDataGridColumn TItem="Transaction" Property="Description" Title="Description" />
+                <RadzenDataGridColumn TItem="Transaction" Property="Category" Title="Category" />
+                <RadzenDataGridColumn TItem="Transaction" Property="Amount" Title="Amount" FormatString="{0:C}" />
+                <RadzenDataGridColumn TItem="Transaction" Title="Type">
+                    <Template Context="data">
+                        @if (data.Amount >= 0)
+                        {
+                            <RadzenBadge Text="Income" Style="background:green;color:white;" />
+                        }
+                        else
+                        {
+                            <RadzenBadge Text="Expense" Style="background:red;color:white;" />
+                        }
+                    </Template>
+                </RadzenDataGridColumn>
+            </Columns>
+        </RadzenDataGrid>
+    </RadzenCard>
+</RadzenContent>
+
+@code {
+    private decimal TotalIncome => Transactions.Where(t => t.Amount > 0).Sum(t => t.Amount);
+    private decimal TotalExpense => Math.Abs(Transactions.Where(t => t.Amount < 0).Sum(t => t.Amount));
+    private decimal NetSavings => TotalIncome - TotalExpense;
+    private int ActiveUsers => 245;
+
+    private List<Transaction> Transactions = new()
+    {
+        new() { Date = DateTime.Today.AddDays(-1), Description = "Salary", Category = "Income", Amount = 2500 },
+        new() { Date = DateTime.Today.AddDays(-2), Description = "Rent", Category = "Housing", Amount = -900 },
+        new() { Date = DateTime.Today.AddDays(-3), Description = "Groceries", Category = "Food", Amount = -120 },
+        new() { Date = DateTime.Today.AddDays(-4), Description = "Fuel", Category = "Transport", Amount = -50 },
+        new() { Date = DateTime.Today.AddDays(-5), Description = "Freelance Work", Category = "Income", Amount = 400 }
+    };
+
+    private List<MonthlyTrend> MonthlyData = new()
+    {
+        new() { Month = "Jan", Income = 4000, Expense = 2500 },
+        new() { Month = "Feb", Income = 4200, Expense = 2800 },
+        new() { Month = "Mar", Income = 3900, Expense = 2700 },
+        new() { Month = "Apr", Income = 4700, Expense = 3000 },
+        new() { Month = "May", Income = 5200, Expense = 3100 },
+        new() { Month = "Jun", Income = 4800, Expense = 2900 }
+    };
+
+    private List<ExpenseCategory> ExpenseCategories = new()
+    {
+        new() { Category = "Food", Percentage = 25 },
+        new() { Category = "Housing", Percentage = 30 },
+        new() { Category = "Transport", Percentage = 15 },
+        new() { Category = "Utilities", Percentage = 10 },
+        new() { Category = "Other", Percentage = 20 }
+    };
+
+    public class Transaction
+    {
+        public DateTime Date { get; set; }
+        public string Description { get; set; }
+        public string Category { get; set; }
+        public decimal Amount { get; set; }
+    }
+
+    public class MonthlyTrend
+    {
+        public string Month { get; set; }
+        public double Income { get; set; }
+        public double Expense { get; set; }
+    }
+
+    public class ExpenseCategory
+    {
+        public string Category { get; set; }
+        public double Percentage { get; set; }
+    }
+}
