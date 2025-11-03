@@ -16,10 +16,13 @@ namespace ExpenseManagement.Controllers;
 public class TransactionController : ControllerBase
 {
   private readonly ITransactionService transactionService;
+  private readonly IUserContext userContext;
   public TransactionController(ITransactionService transactionService)
    {
     this.transactionService = transactionService;
+    this.userContext = userContext;
    }
+ 
  
   [Authorize(Roles = "User")]
   [HttpPost("createtransaction")]
@@ -97,6 +100,19 @@ public class TransactionController : ControllerBase
        }
       return Ok(new { Message = result.Message, Data = result.Data });
      }
+
+    [Authorize]
+    [HttpGet("test")]
+    public IActionResult Test()
+    {
+     if (!userContext.IsAuthenticated())
+      return Unauthorized();
+
+     int userId = userContext.GetUserId();
+     string email = userContext.GetUserEmail();
+
+     return Ok(new { UserId = userId, Email = email });
+    }
    
 }
  

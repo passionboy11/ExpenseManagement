@@ -61,7 +61,7 @@ public class TokenProvider
                 new Claim(ClaimTypes.NameIdentifier, userAccount.Id.ToString()),
                 new Claim(ClaimTypes.Name, userAccount.Email),
                 new Claim(ClaimTypes.Role, userAccount.Role)
-            ]),
+            ]), 
             
             Expires = DateTime.Now.AddSeconds(40),
             SigningCredentials = credentials,
