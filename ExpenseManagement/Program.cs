@@ -36,6 +36,9 @@ builder.Services.AddAuthorization();
 // Service registrations
 builder.Services.AddScoped<IBudgetService, BudgetService>();
 builder.Services.AddScoped<ITransactionService, TransactionService>();
+builder.Services.AddHttpContextAccessor(); // this is required
+builder.Services.AddScoped<IUserContext, UserContext>();
+builder.Services.AddScoped<IAdminService, AdminService>();
 builder.Services.AddScoped<DataAccess>();
 builder.Services.AddScoped<TokenProvider>();
 
