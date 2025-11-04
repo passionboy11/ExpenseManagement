@@ -13,18 +13,20 @@ namespace ExpenseManagement.Controllers;
 public class BudgetController : ControllerBase
 {
     private readonly IBudgetService budgetService;
-    public BudgetController(IBudgetService budgetService)
+    private readonly IUserContext userContext;
+    public BudgetController(IBudgetService budgetService, IUserContext userContext)
     {
         this.budgetService = budgetService;
+        this.userContext  = userContext;
     }
 
     [Authorize]
     [HttpPost("createbudget")]
     public IActionResult CreateBudget([FromBody] Budget request)
     {
-        var email = User.FindFirst(ClaimTypes.Name) ?.Value;
+        int id = userContext.GetUserId();
         
-        var result = budgetService.CreateBudget(email,request);
+        var result = budgetService.CreateBudget(id,request);
 
         if (!result.Success)
         {
@@ -38,8 +40,8 @@ public class BudgetController : ControllerBase
     [HttpPut("editbudget")]
     public IActionResult EditBudget([FromBody] EditBudget request)
     {
-        var email = User.FindFirst(ClaimTypes.Name) ?.Value;
-        var result = budgetService.EditBudget(email,request);
+        int id = userContext.GetUserId();
+        var result = budgetService.EditBudget(id,request);
         if (!result.Success)
         {
             return BadRequest(new{Message= result.Message});
@@ -52,8 +54,9 @@ public class BudgetController : ControllerBase
     [HttpDelete("deletebudget")]
     public IActionResult DeleteBudget([FromBody] DeleteBudget request)
     {
-        var email = User.FindFirst(ClaimTypes.Name) ?.Value;
-        var result = budgetService.DeleteBudget(email,request);
+        int id = userContext.GetUserId();
+        
+        var result = budgetService.DeleteBudget(id,request);
         if (!result.Success)
         {
             return BadRequest(new{Message= result.Message});
@@ -65,8 +68,9 @@ public class BudgetController : ControllerBase
     [HttpGet("getbudget")]
     public IActionResult GetBudget()
     {
-        var emailClaim =  User.FindFirst(ClaimTypes.Name) ?.Value;
-        var result = budgetService.ReadBudget(emailClaim);
+        int id = userContext.GetUserId();
+        Console.WriteLine(id);
+        var result = budgetService.ReadBudget(id);
         if(!result.Success)
         {
             return BadRequest(new{Message= result.Message});

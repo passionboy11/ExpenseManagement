@@ -7,11 +7,11 @@ namespace ExpenseManagement.Services;
 
 public interface ITransactionService
 {
-    TransactionServiceResult CreateTransaction( CreateTransactionRequest request,string email);
-    TransactionServiceResult EditTransaction( EditTransactionRequest request,string email);
-    TransactionServiceResult DeleteTransaction( DeleteTransactionRequest request,string email);
-    TransactionServiceResult <List<TransactionResponse>> ReadTransaction( string email);
-    TransactionServiceResult <BalanceResponse> GetBalance( string email);
+    TransactionServiceResult CreateTransaction( CreateTransactionRequest request,int userId);
+    TransactionServiceResult EditTransaction( EditTransactionRequest request,int userId);
+    TransactionServiceResult DeleteTransaction( DeleteTransactionRequest request,int userId);
+    TransactionServiceResult <List<TransactionResponse>> ReadTransaction( int userId);
+    TransactionServiceResult <BalanceResponse> GetBalance(int userId);
 }
 // decoupling
 public class TransactionService: ITransactionService
@@ -23,12 +23,8 @@ public class TransactionService: ITransactionService
         this.dataAccess = dataAccess;
     }
 
-    public TransactionServiceResult CreateTransaction(CreateTransactionRequest request, string email)
+    public TransactionServiceResult CreateTransaction(CreateTransactionRequest request, int userId)
     {
-        var userId = dataAccess.FindUserIdByEmail(email);
-        if (userId is 0)
-            return new TransactionServiceResult(false, "User not found");
-
         var success = dataAccess.CreateTransaction(request, userId);
         if (!success)
             return new TransactionServiceResult(false, "Transaction creation failed");
@@ -64,12 +60,8 @@ public class TransactionService: ITransactionService
     }
 
 
-    public TransactionServiceResult EditTransaction(EditTransactionRequest request, string email)
+    public TransactionServiceResult EditTransaction(EditTransactionRequest request, int userId)
     {
-        var userId = dataAccess.FindUserIdByEmail(email);
-        if (userId is 0)
-            return new TransactionServiceResult(false, "User not found");
-        
         var success = dataAccess.EditTransaction(request, userId);
         if (!success)
             return new TransactionServiceResult(false, "Transaction Edit failed");
@@ -77,11 +69,9 @@ public class TransactionService: ITransactionService
         return new TransactionServiceResult(true,"Edited successfully");
     }
 
-    public TransactionServiceResult DeleteTransaction(DeleteTransactionRequest request,string email)
+    public TransactionServiceResult DeleteTransaction(DeleteTransactionRequest request,int userId)
     {
-        var userId = dataAccess.FindUserIdByEmail(email);
-        if (userId is 0)
-            return new TransactionServiceResult(false, "User not found");
+        
         
         var success = dataAccess.DeleteTransaction(request, userId);
         if (!success)
@@ -90,12 +80,8 @@ public class TransactionService: ITransactionService
         return new TransactionServiceResult(true,"Transaction deleted successfully");
     }
 
-    public TransactionServiceResult<List<TransactionResponse>> ReadTransaction(string email)
+    public TransactionServiceResult<List<TransactionResponse>> ReadTransaction(int userId)
     {
-        var userId = dataAccess.FindUserIdByEmail(email);
-        if (userId is 0)
-            return new TransactionServiceResult<List<TransactionResponse>>(false, "User not found");
-
         var result  = dataAccess.ReadTransaction(userId);
         if (!result.Any())
         {
@@ -115,12 +101,8 @@ public class TransactionService: ITransactionService
         return new TransactionServiceResult<List<TransactionResponse>>(true,"Transactions read successfully",transactions);
     }
 
-    public TransactionServiceResult<BalanceResponse> GetBalance(string email)
+    public TransactionServiceResult<BalanceResponse> GetBalance(int userId)
     {
-        var userId = dataAccess.FindUserIdByEmail(email);
-        if (userId is 0)
-            return new TransactionServiceResult<BalanceResponse>(false, "User not found");
-
         // Suppose this returns decimal
         var balanceAmount = dataAccess.GetUserBalance(userId); 
         return new TransactionServiceResult<BalanceResponse>(

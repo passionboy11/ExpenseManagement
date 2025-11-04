@@ -17,7 +17,7 @@ public class TransactionController : ControllerBase
 {
   private readonly ITransactionService transactionService;
   private readonly IUserContext userContext;
-  public TransactionController(ITransactionService transactionService)
+  public TransactionController(ITransactionService transactionService, IUserContext userContext)
    {
     this.transactionService = transactionService;
     this.userContext = userContext;
@@ -28,9 +28,9 @@ public class TransactionController : ControllerBase
   [HttpPost("createtransaction")]
   public IActionResult CreateTransaction([FromBody] CreateTransactionRequest request)
    {
-     var emailClaim = User.FindFirst(ClaimTypes.Name)?.Value;
-    
-     var result = transactionService.CreateTransaction(request,emailClaim);
+     int id = userContext.GetUserId();
+
+     var result = transactionService.CreateTransaction(request,id);
     
      if (!result.Success)
      {
@@ -47,9 +47,9 @@ public class TransactionController : ControllerBase
     [HttpPut("edittransaction")]
     public IActionResult EditTransaction([FromBody] EditTransactionRequest request)
     {
-     var emailClaim = User.FindFirst(ClaimTypes.Name)?.Value;
+     int id = userContext.GetUserId();
    
-     var result = transactionService.EditTransaction(request, emailClaim);
+     var result = transactionService.EditTransaction(request, id);
      if (!result.Success)
      {
       return BadRequest(new{Message= result.Message});
@@ -61,9 +61,9 @@ public class TransactionController : ControllerBase
     [HttpDelete("deletetransaction")]
     public IActionResult DeleteTransaction([FromBody] DeleteTransactionRequest request)
     {
-      var emailClaim = User.FindFirst(ClaimTypes.Name)?.Value;
+      int id = userContext.GetUserId();
      
-      var result = transactionService.DeleteTransaction(request, emailClaim);
+      var result = transactionService.DeleteTransaction(request, id);
       
       if (!result.Success)
       {
@@ -76,9 +76,9 @@ public class TransactionController : ControllerBase
     [HttpGet("readtransaction")]
     public IActionResult ReadTransaction()
     {
-     var emailClaim = User.FindFirst(ClaimTypes.Name)?.Value;
+     int id = userContext.GetUserId();
      
-     var result =  transactionService.ReadTransaction(emailClaim);
+     var result =  transactionService.ReadTransaction(id);
      
      if(!result.Success)
       {
@@ -92,27 +92,13 @@ public class TransactionController : ControllerBase
     [HttpGet("getbalance")]
     public IActionResult GetBalance()
     {
-      var emailClaim = User.FindFirst(ClaimTypes.Name)?.Value;
-      var result = transactionService.GetBalance(emailClaim);
+      int id = userContext.GetUserId();
+      var result = transactionService.GetBalance(id);
       if (!result.Success)
        {
         return BadRequest(new{Message= result.Message});
        }
       return Ok(new { Message = result.Message, Data = result.Data });
      }
-
-    [Authorize]
-    [HttpGet("test")]
-    public IActionResult Test()
-    {
-     if (!userContext.IsAuthenticated())
-      return Unauthorized();
-
-     int userId = userContext.GetUserId();
-     string email = userContext.GetUserEmail();
-
-     return Ok(new { UserId = userId, Email = email });
-    }
-   
 }
  

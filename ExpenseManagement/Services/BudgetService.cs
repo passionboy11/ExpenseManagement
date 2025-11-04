@@ -6,10 +6,10 @@ namespace ExpenseManagement.Services;
 
 public interface IBudgetService
 {
-    BudgetServiceResult CreateBudget(string email,  Budget request);
-    BudgetServiceResult EditBudget(string email,  EditBudget request);
-    BudgetServiceResult DeleteBudget(string email,  DeleteBudget request);
-    BudgetServiceResult <List<BudgetResponse>> ReadBudget(string email);
+    BudgetServiceResult CreateBudget(int userId,  Budget request);
+    BudgetServiceResult EditBudget(int userId,  EditBudget request);
+    BudgetServiceResult DeleteBudget(int userId,  DeleteBudget request);
+    BudgetServiceResult <List<BudgetResponse>> ReadBudget(int userId);
 }
 
 public class BudgetService:IBudgetService
@@ -21,12 +21,8 @@ public class BudgetService:IBudgetService
        this.dataAccess = dataAccess;
    }
 
-   public BudgetServiceResult CreateBudget(string email, Budget request)
+   public BudgetServiceResult CreateBudget(int userId, Budget request)
    {
-       var userId = dataAccess.FindUserIdByEmail(email);
-       if (userId is 0)
-           return new BudgetServiceResult(false, "User not found");
-       
        var success = dataAccess.CreateBudget(request, userId);
        if (!success)
            return new BudgetServiceResult(false, "Error creating budget");
@@ -34,10 +30,8 @@ public class BudgetService:IBudgetService
        return new BudgetServiceResult(true, "Budget created successfully");
    }
 
-   public BudgetServiceResult EditBudget(string email, EditBudget request)
+   public BudgetServiceResult EditBudget(int userId, EditBudget request)
    {
-       var userId = dataAccess.FindUserIdByEmail(email);
-       
        var success = dataAccess.EditBudget(request, userId);
        if(!success)
            return new BudgetServiceResult(false, "Error editing budget");
@@ -45,10 +39,8 @@ public class BudgetService:IBudgetService
        return new BudgetServiceResult(true, "Budget edited successfully");
    }
 
-   public BudgetServiceResult DeleteBudget(string email, DeleteBudget request)
+   public BudgetServiceResult DeleteBudget(int userId, DeleteBudget request)
    {
-       var userId = dataAccess.FindUserIdByEmail(email);
-       
        var success = dataAccess.DeleteBudget(request, userId);
        if(!success)
            return new BudgetServiceResult(false, "Error deleting budget");
@@ -57,15 +49,16 @@ public class BudgetService:IBudgetService
        
    }
 
-   public BudgetServiceResult<List<BudgetResponse>> ReadBudget(string email)
+   public BudgetServiceResult<List<BudgetResponse>> ReadBudget(int userId)
    {
-       var userId = dataAccess.FindUserIdByEmail(email);
-       
        var success = dataAccess.ReadBudget(userId);
        if(!success.Any())
            return new BudgetServiceResult<List<BudgetResponse>>(false,"Error reading budget");
        var budget = success.Select(t => new BudgetResponse
        {
+           Id = t.Id,
+           UserId = t.UserId,
+           Email = t.Email,
            Category = t.Category,
            LimitAmount = t.LimitAmount,
            MonthYear = t.MonthYear
@@ -87,16 +80,9 @@ public class BudgetServiceResult
     }
 }
 
-public class BudgetServiceResult<T>
+public class BudgetServiceResult<T>(bool success, string message, T? data = default)
 {
-    public bool Success { get; }
-    public string Message { get; }
-    public T? Data { get; }
-    
-    public  BudgetServiceResult(bool success, string message, T? data=default)
-    {
-        Success = success;
-        Message = message;
-        Data = data;
-    }
+    public bool Success { get; } = success;
+    public string Message { get; } = message;
+    public T? Data { get; } = data;
 }

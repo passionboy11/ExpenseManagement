@@ -21,7 +21,6 @@ namespace ExpenseManagement.Infrastructure
         public void Dispose()
         {
                 connection.Dispose();
-            
         }
 
         public bool RegisterUser(string email, string password, string role)
@@ -238,10 +237,10 @@ namespace ExpenseManagement.Infrastructure
             return result > 0;
         }
 
-        public IEnumerable<Budget> ReadBudget(int userId)
+        public IEnumerable<BudgetResponse> ReadBudget(int userId)
         {
-            var sql = @"SELECT * FROM Budgets WHERE UserId = @UserId";
-            var result = connection.Query<Budget>(sql, new
+            var sql = @"SELECT b.*, u.Email FROM Budgets b INNER JOIN UserAccounts u on b.UserId =u.Id WHERE b.UserId = @UserId";
+            var result = connection.Query<BudgetResponse>(sql, new
             {
                 UserId = userId
             });
@@ -253,6 +252,7 @@ namespace ExpenseManagement.Infrastructure
             string query = @"
         SELECT 
             b.Id,
+            b.UserId,
             u.Email,
             b.LimitAmount,
             b.Category,
