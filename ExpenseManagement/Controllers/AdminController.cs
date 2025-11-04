@@ -29,4 +29,32 @@ public class AdminController:ControllerBase
 
         return Ok(new { Message = result.Message,Data=result.Data });
     }
+
+    [Authorize(Roles = "Admin")]
+    [HttpGet("readallbudgets")]
+    public IActionResult ReadAllBudgets()
+    {
+        var result = adminService.ReadAllBudgets();
+        if (!result.Success)
+        {
+            return BadRequest(new { Message = result.Message });
+        }
+
+        return Ok(new { Message = result.Message, Data = result.Data });
+    }
+    
+
+    [Authorize(Roles = "Admin")]
+    [HttpGet("viewallusers")]
+    public IActionResult ViewAllUsers()
+    {
+        var result = adminService.ViewAllUsers();
+        if (!result.Success)
+        {
+            return BadRequest(new { Message = result.Message });
+        }
+
+        return Ok(new { Message = result.Message, Data = result.Data });
+    }
+    
 }

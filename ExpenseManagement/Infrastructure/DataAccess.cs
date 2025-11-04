@@ -177,10 +177,19 @@ namespace ExpenseManagement.Infrastructure
             return result;
         }
 
-        public IEnumerable<Transaction> ReadAllTransactions()
+        public IEnumerable<TransactionResponse> ReadAllTransactions()
         {
-            var sql = @"SELECT * FROM Transactions";
-            var result = connection.Query<Transaction>(sql);
+            var sql = @"SELECT t.Id,
+                               u.Email,
+                               t.Amount,
+                               t.IsExpense,
+                               t.Category,
+                               t.Description,
+                               t.PaymentMethod,
+                               t.IsRecurring,
+                               t.Date
+                    FROM Transactions t INNER JOIN UserAccounts u ON t.UserId = u.Id";
+            var result = connection.Query<TransactionResponse>(sql);
             return result;
         }
 
@@ -239,6 +248,29 @@ namespace ExpenseManagement.Infrastructure
             return result;
         }
 
+        public IEnumerable<BudgetResponse> ReadAllBudgets()
+        {
+            string query = @"
+        SELECT 
+            b.Id,
+            u.Email,
+            b.LimitAmount,
+            b.Category,
+            b.MonthYear,
+            b.CreatedAt
+        FROM Budgets b
+        INNER JOIN UserAccounts u ON b.UserId = u.Id;
+    ";
+            var result = connection.Query<BudgetResponse>(query);
+            return result;
+        }
+
+        public IEnumerable<UserAccount> ViewAllUsers()
+        {
+            var sql =@"SELECT * FROM  UserAccounts";
+            var result = connection.Query<UserAccount>(sql);
+            return result;
+        }
         public decimal GetUserBalance(int id)
         {
             var sql = @"SELECT Balance FROM UserAccounts WHERE Id = @Id";
@@ -270,6 +302,8 @@ namespace ExpenseManagement.Infrastructure
                 WHERE UserId = @UserId AND Category = @Category";
             return connection.QuerySingleOrDefault<decimal>(sql, new { UserId = userId, Category = category });
         }
+        
+        
         
     }
 }

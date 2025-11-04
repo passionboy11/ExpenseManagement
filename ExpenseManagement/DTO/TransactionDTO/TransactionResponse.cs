@@ -3,6 +3,7 @@ namespace ExpenseManagement.DTO;
 public class TransactionResponse
 {
     public int Id { get; set; }
+    public string Email  { get; set; }
     public decimal Amount { get; set; }
     public bool IsExpense { get; set; } 
     public string Category { get; set; } = string.Empty;
