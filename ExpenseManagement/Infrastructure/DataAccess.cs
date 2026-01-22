@@ -35,8 +35,8 @@ namespace ExpenseManagement.Infrastructure
 
             if (accountCount > 0) return false;
 
-            var sql = "INSERT INTO UserAccounts (Email, Password, Role) VALUES (@email, @password, @role)";
-            var result = connection.Execute(sql, new { email, password, role });
+            var sql = "INSERT INTO UserAccounts (Email, Password,Role) VALUES (@email, @password,@role)";
+            var result = connection.Execute(sql, new { email, password,role});
 
             return result > 0;
         }
@@ -124,7 +124,7 @@ namespace ExpenseManagement.Infrastructure
             return result > 0;
         }
 
-        public bool EditTransaction(EditTransactionRequest request, int userId)
+        public bool EditTransaction(EditTransactionRequest request, int userId,int tid)
         {
             var sql = @"UPDATE Transactions SET Amount = @Amount, 
                                                 IsExpense= @IsExpense, 
@@ -133,9 +133,10 @@ namespace ExpenseManagement.Infrastructure
                                                 Description = @Description,
                                                 IsRecurring = @IsRecurring,
                                                 Date=CURRENT_DATE() 
-                                                WHERE UserId = @UserId AND Id = @Id";
+                                                WHERE UserId = @UserId AND Id = @tid";
             var result = connection.Execute(sql, new
             {
+                Tid =tid,
                 request.Id,
                 UserId = userId,
                 request.Amount,
@@ -149,15 +150,15 @@ namespace ExpenseManagement.Infrastructure
             return result > 0;
         }
 
-        public bool DeleteTransaction(DeleteTransactionRequest request, int userId)
+        public bool DeleteTransaction( int userId,int tid)
         {
-            var sql = @"DELETE FROM Transactions WHERE  UserId = @UserId AND Id = @Id";
+            var sql = @"DELETE FROM Transactions WHERE  UserId = @UserId AND Id = @Tid";
             var result = connection.Execute(sql,new
             {
-                Id = request.Id,
                 UserId = userId,
+                Tid = tid,
             });
-            Console.WriteLine($"Deleting Transaction Id={request.Id} for UserId={userId}");
+            Console.WriteLine($"Deleting Transaction Id={tid} for UserId={userId}");
             Console.WriteLine($"Rows affected: {result}");
             
             return result > 0;
@@ -173,6 +174,17 @@ namespace ExpenseManagement.Infrastructure
                 UserId = userId,
             });
 
+            return result;
+        }
+
+        public IEnumerable<Transaction> GetTransactionById(int userId, int Id)
+        {
+            var sql ="SELECT * FROM TRANSACTIONS WHERE UserId =@userId AND Id = @Id";
+            var result = connection.Query<Transaction>(sql, new
+            {
+                userId = userId, 
+                Id = Id
+            });
             return result;
         }
 

@@ -11,6 +11,16 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddControllers();
 
+builder.Services.AddScoped<AdminService>();
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowReactApp",
+        policy => policy.WithOrigins("http://localhost:5173")
+            .AllowAnyHeader()
+            .AllowAnyMethod()
+            .AllowCredentials());
+});
 // Register global exception handler
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 // Swagger setup
@@ -44,6 +54,7 @@ builder.Services.AddScoped<TokenProvider>();
 
 var app = builder.Build();
 
+app.UseCors("AllowReactApp");
 // Middleware pipeline
 app.UseExceptionHandler(opt => { });
 // Use Swagger in Development

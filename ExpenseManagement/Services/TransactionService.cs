@@ -8,9 +8,10 @@ namespace ExpenseManagement.Services;
 public interface ITransactionService
 {
     TransactionServiceResult CreateTransaction( CreateTransactionRequest request,int userId);
-    TransactionServiceResult EditTransaction( EditTransactionRequest request,int userId);
-    TransactionServiceResult DeleteTransaction( DeleteTransactionRequest request,int userId);
+    TransactionServiceResult EditTransaction( EditTransactionRequest request,int userId,int tid);
+    TransactionServiceResult DeleteTransaction(int userId,int tid);
     TransactionServiceResult <List<TransactionResponse>> ReadTransaction( int userId);
+    TransactionServiceResult<TransactionResponse> GetTransactionById(int id,int tid);
     TransactionServiceResult <BalanceResponse> GetBalance(int userId);
 }
 // decoupling
@@ -60,20 +61,19 @@ public class TransactionService: ITransactionService
     }
 
 
-    public TransactionServiceResult EditTransaction(EditTransactionRequest request, int userId)
+    public TransactionServiceResult EditTransaction(EditTransactionRequest request, int userId,int tid)
     {
-        var success = dataAccess.EditTransaction(request, userId);
+        var success = dataAccess.EditTransaction(request, userId,tid);
         if (!success)
             return new TransactionServiceResult(false, "Transaction Edit failed");
         
         return new TransactionServiceResult(true,"Edited successfully");
     }
 
-    public TransactionServiceResult DeleteTransaction(DeleteTransactionRequest request,int userId)
+    public TransactionServiceResult DeleteTransaction(int userId, int tid)
     {
         
-        
-        var success = dataAccess.DeleteTransaction(request, userId);
+        var success = dataAccess.DeleteTransaction(userId,tid);
         if (!success)
             return new TransactionServiceResult(false, "Transaction Delete failed");
         
@@ -99,6 +99,28 @@ public class TransactionService: ITransactionService
             Date = t.Date
         }).ToList();
         return new TransactionServiceResult<List<TransactionResponse>>(true,"Transactions read successfully",transactions);
+    }
+
+    public TransactionServiceResult<TransactionResponse> GetTransactionById(int userId,int tid)
+    {
+        var result = dataAccess.GetTransactionById(userId,tid);
+        if (!result.Any())
+        {
+            return new TransactionServiceResult<TransactionResponse>(false, "Transaction not found");
+        }
+        var transaction = result.Select(t => new TransactionResponse
+        {
+            Id = t.Id,
+            Amount = t.Amount,
+            IsExpense = t.IsExpense,
+            Category = t.Category,
+            Description = t.Description,
+            PaymentMethod = t.PaymentMethod,
+            IsRecurring = t.IsRecurring,
+            Date = t.Date
+        }).FirstOrDefault();
+        return new TransactionServiceResult<TransactionResponse>(true,"Transaction shown",transaction);
+        
     }
 
     public TransactionServiceResult<BalanceResponse> GetBalance(int userId)

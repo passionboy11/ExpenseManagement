@@ -32,6 +32,7 @@ public class UserContext : IUserContext
     public string? GetUserRole()
     {
         var user = _httpContextAccessor.HttpContext?.User;
+        
         return user?.FindFirst(ClaimTypes.Role)?.Value;
     }
 

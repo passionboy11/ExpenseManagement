@@ -20,10 +20,11 @@ namespace ExpenseManagement.Controllers
         }
 
         [HttpPost("register")]
-        public ActionResult Register(RegisterRequest request)
+        public ActionResult Register([FromBody] RegisterRequest request)
         {
             string hashedPassword = BCrypt.Net.BCrypt.HashPassword(request.Password);
-            var result = dataAccess.RegisterUser(request.Email, hashedPassword, request.Role);
+            string role = string.IsNullOrWhiteSpace(request.Role) ? "User" : request.Role;
+            var result = dataAccess.RegisterUser(request.Email, hashedPassword,role);
             if (result)
             {
 
@@ -65,7 +66,7 @@ namespace ExpenseManagement.Controllers
             return Ok(response);
         }
 
-        [HttpPost("refresh")]
+        [HttpPost("refresh-token")]
         public ActionResult<AuthResponse> RefreshToken()
         {
             AuthResponse response = new AuthResponse();

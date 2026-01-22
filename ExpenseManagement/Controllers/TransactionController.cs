@@ -24,7 +24,7 @@ public class TransactionController : ControllerBase
    }
  
  
-  [Authorize(Roles = "User")]
+  [Authorize(Roles = "Admin,User")]
   [HttpPost("createtransaction")]
   public IActionResult CreateTransaction([FromBody] CreateTransactionRequest request)
    {
@@ -44,12 +44,12 @@ public class TransactionController : ControllerBase
    }
    
     [Authorize]
-    [HttpPut("edittransaction")]
-    public IActionResult EditTransaction([FromBody] EditTransactionRequest request)
+    [HttpPut("edittransaction/{tid}")]
+    public IActionResult EditTransaction([FromBody] EditTransactionRequest request,int tid)
     {
      int id = userContext.GetUserId();
    
-     var result = transactionService.EditTransaction(request, id);
+     var result = transactionService.EditTransaction(request, id,tid);
      if (!result.Success)
      {
       return BadRequest(new{Message= result.Message});
@@ -58,12 +58,12 @@ public class TransactionController : ControllerBase
     }
    
     [Authorize]
-    [HttpDelete("deletetransaction")]
-    public IActionResult DeleteTransaction([FromBody] DeleteTransactionRequest request)
+    [HttpDelete("deletetransaction/{tid}")]
+    public IActionResult DeleteTransaction( int tid)
     {
       int id = userContext.GetUserId();
      
-      var result = transactionService.DeleteTransaction(request, id);
+      var result = transactionService.DeleteTransaction( id,tid);
       
       if (!result.Success)
       {
@@ -84,6 +84,20 @@ public class TransactionController : ControllerBase
       {
       return BadRequest(new{Message= result.Message});
       }
+
+     return Ok(new { Message = result.Message, Data = result.Data });
+    }
+
+    [Authorize]
+    [HttpGet("gettransactionbyid/{tid}")]
+    public IActionResult GetTransactionById([FromRoute]int tid)
+    {
+     int id = userContext.GetUserId();
+     var result = transactionService.GetTransactionById(id, tid);
+     if (!result.Success)
+     {
+      return BadRequest(new{Message= result.Message});
+     }
 
      return Ok(new { Message = result.Message, Data = result.Data });
     }
