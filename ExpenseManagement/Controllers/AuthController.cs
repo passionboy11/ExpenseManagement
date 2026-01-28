@@ -126,7 +126,7 @@ namespace ExpenseManagement.Controllers
                 dataAccess.DisableUserToken(refreshToken);
                 Response.Cookies.Delete("refreshToken");
             }
-
+            
             return Ok();
         }
 

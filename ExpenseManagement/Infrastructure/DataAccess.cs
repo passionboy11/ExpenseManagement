@@ -204,7 +204,7 @@ namespace ExpenseManagement.Infrastructure
 
         public IEnumerable<Transaction> GetTransactionById(int userId, int Id)
         {
-            var sql ="SELECT * FROM TRANSACTIONS WHERE UserId =@userId AND Id = @Id";
+            var sql = "SELECT * FROM Transactions WHERE UserId =@userId AND Id = @Id";
             var result = connection.Query<Transaction>(sql, new
             {
                 userId = userId, 
@@ -248,9 +248,9 @@ namespace ExpenseManagement.Infrastructure
             return result > 0;
         }
 
-        public bool EditBudget(ExpenseManagement.DTO.EditBudget budget, int userId)
+        public bool EditBudget(ExpenseManagement.DTO.EditBudget budget,int tid, int userId)
         {
-            var sql = @"UPDATE Budgets SET Category = @Category, LimitAmount = @LimitAmount, MonthYear = @MonthYear WHERE UserId = @UserId AND Id = @Id";
+            var sql = @"UPDATE Budgets SET Category = @Category, LimitAmount = @LimitAmount, MonthYear = @MonthYear WHERE UserId = @UserId AND Id = @tid";
 
             var result = connection.Execute(sql, new
             {
@@ -263,9 +263,9 @@ namespace ExpenseManagement.Infrastructure
             return result > 0;
         }
 
-        public bool DeleteBudget(ExpenseManagement.DTO.DeleteBudget budget, int userId)
+        public bool DeleteBudget(ExpenseManagement.DTO.DeleteBudget budget, int userId, int tid)
         {
-            var sql =  @"DELETE FROM Budgets WHERE  UserId = @UserId AND Id = @Id";
+            var sql =  @"DELETE FROM Budgets WHERE  UserId = @UserId AND Id = @tid";
             var result = connection.Execute(sql, new
             {
                 budget.Id,
@@ -280,6 +280,17 @@ namespace ExpenseManagement.Infrastructure
             var result = connection.Query<BudgetResponse>(sql, new
             {
                 UserId = userId
+            });
+            return result;
+        }
+    
+        public IEnumerable<BudgetResponse> GetBudgetById(int userId, int Id)
+        {
+            var sql = "SELECT * FROM Budgets WHERE UserId =@userId AND Id = @Id";
+            var result = connection.Query<BudgetResponse>(sql, new
+            {
+                UserId = userId,
+                Id = Id
             });
             return result;
         }
