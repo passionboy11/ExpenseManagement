@@ -1,5 +1,6 @@
 using Dapper;
 using ExpenseManagement.DTO;
+using ExpenseManagement.DTO.ReminderDTO;
 using ExpenseManagement.Models;
 using MySqlConnector;
 using Budget = ExpenseManagement.Models.Budget;
@@ -105,12 +106,69 @@ namespace ExpenseManagement.Infrastructure
             return connection.QueryFirstOrDefault<UserAccount>(sql, new { Token = token });
         }
 
+        public bool CreateReminder(CreateReminderRequest request, int userId)
+        {
+            var sql =
+                "INSERT INTO Reminder (UserAccountId,BillName,DueDate,PaymentMethod,Frequency,NotificationTiming) VALUES (@UserAccountId,@BillName,@DueDate,@PaymentMethod,@Frequency,@NotificationTiming)";
+            var result = connection.Execute(sql, new
+            {
+                UserAccountId = userId,
+                BillName = request.BillName,
+                DueDate = request.DueDate,
+                PaymentMethod = request.PaymentMethod,
+                Frequency = request.Frequency,
+                NotificationTiming = request.NotificationTiming
+            });
+            return result > 0;
+        }
+
+        public bool EditReminder(EditReminderRequest request, int userId, int rid)
+        {
+            var sql = "UPDATE Reminder SET BillName=@BillName, DueDate=@DueDate, PaymentMethod=@PaymentMethod, Frequency=@Frequency, NotificationTiming=@NotificationTiming WHERE UserAccountId = @userId AND Id = @rid";
+            var result = connection.Execute(sql, new
+            {
+                BillName = request.BillName,
+                DueDate = request.DueDate,
+                PaymentMethod = request.PaymentMethod,
+                Frequency = request.Frequency.ToString(), // if DB is ENUM('Daily','Weekly',..)
+                NotificationTiming = request.NotificationTiming,
+                userId = userId,
+                rid = rid
+            });
+            return result > 0;
+        }
+
+        public bool DeleteReminder(int userId, int rid)
+        {
+            var sql = "DELETE FROM Reminder WHERE UserAccountId = @userId AND Id = @rid";
+            var result = connection.Execute(sql, new { userId = userId, rid = rid });
+            return result > 0;
+        }
+        public IEnumerable<ReminderResponse> GetReminder(int userId)
+        {
+            var sql =  @"SELECT * FROM Reminder WHERE UserAccountId = @UserId";
+            var result = connection.Query<ReminderResponse>(sql, new
+            {
+                UserId = userId,
+            });
+            return result;
+        }
+        public IEnumerable<ReminderResponse> GetReminderById(int userId, int rid)
+        {
+            var sql =  "SELECT * FROM Reminder WHERE UserAccountId = @userId AND Id = @rid";
+            var result = connection.Query<ReminderResponse>(sql, new
+            {
+                userId = userId, 
+                rid = rid
+            });
+            return result;
+        }
         public bool CreateTransaction(CreateTransactionRequest request, int userId)
         {
             var sql =
                 "INSERT INTO Transactions (UserId,Amount,IsExpense,Category,Description,PaymentMethod,IsRecurring,Date) VALUES (@UserId,@Amount,@IsExpense,@Category,@Description,@PaymentMethod,@IsRecurring,@Date)";
             var result = connection.Execute(sql, new
-            {
+            {   /// transaction rolllback insert update delete
                 UserId = userId,
                 request.Amount,
                 request.IsExpense,
@@ -201,7 +259,7 @@ namespace ExpenseManagement.Infrastructure
 
             return result;
         }
-
+        
         public IEnumerable<Transaction> GetTransactionById(int userId, int Id)
         {
             var sql = "SELECT * FROM Transactions WHERE UserId =@userId AND Id = @Id";

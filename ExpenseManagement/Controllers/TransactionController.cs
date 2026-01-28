@@ -38,8 +38,7 @@ public class TransactionController : ControllerBase
      }
      return Ok(new
      {
-      Message = result.Message,
-      Alert = result.Alert
+      Message = result.Message
      });
    }
    

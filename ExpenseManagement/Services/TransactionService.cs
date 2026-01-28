@@ -29,7 +29,7 @@ public class TransactionService: ITransactionService
         var success = dataAccess.CreateTransaction(request, userId);
         if (!success)
             return new TransactionServiceResult(false, "Transaction creation failed");
-
+//// remove this 
         decimal amountChange = request.IsExpense ? -request.Amount : request.Amount;
         var balanceUpdated = dataAccess.UpdateUserBalance(userId, amountChange);
         if (!balanceUpdated)
