@@ -7,8 +7,9 @@ namespace ExpenseManagement.Services;
 public interface IBudgetService
 {
     BudgetServiceResult CreateBudget(int userId,  Budget request);
-    BudgetServiceResult EditBudget(int userId,  EditBudget request);
-    BudgetServiceResult DeleteBudget(int userId,  DeleteBudget request);
+    BudgetServiceResult EditBudget(int userId,int tid,  EditBudget request);
+    BudgetServiceResult DeleteBudget(int userId, int tid,  DeleteBudget request);
+    BudgetServiceResult <BudgetResponse> GetBudgetById(int id,int tid);
     BudgetServiceResult <List<BudgetResponse>> ReadBudget(int userId);
 }
 
@@ -30,18 +31,18 @@ public class BudgetService:IBudgetService
        return new BudgetServiceResult(true, "Budget created successfully");
    }
 
-   public BudgetServiceResult EditBudget(int userId, EditBudget request)
+   public BudgetServiceResult EditBudget(int userId,int tid, EditBudget request)
    {
-       var success = dataAccess.EditBudget(request, userId);
+       var success = dataAccess.EditBudget(request, userId,tid);
        if(!success)
            return new BudgetServiceResult(false, "Error editing budget");
        
        return new BudgetServiceResult(true, "Budget edited successfully");
    }
 
-   public BudgetServiceResult DeleteBudget(int userId, DeleteBudget request)
+   public BudgetServiceResult DeleteBudget(int userId, int tid, DeleteBudget request)
    {
-       var success = dataAccess.DeleteBudget(request, userId);
+       var success = dataAccess.DeleteBudget(request, userId,tid);
        if(!success)
            return new BudgetServiceResult(false, "Error deleting budget");
        
@@ -66,6 +67,25 @@ public class BudgetService:IBudgetService
        
        return new BudgetServiceResult<List<BudgetResponse>>(true,"Budget read successfully", budget);
    }
+
+    public BudgetServiceResult<BudgetResponse> GetBudgetById(int id, int tid)
+    {
+       var result = dataAccess.GetBudgetById(id, tid);
+        if (!result.Any())
+        {
+            return new BudgetServiceResult<BudgetResponse>(false, "Budget not found");
+        }
+        var budget = result.Select(t => new BudgetResponse
+        {
+            Id = t.Id,
+            UserId = t.UserId,
+            Email = t.Email,
+            Category = t.Category,
+            LimitAmount = t.LimitAmount,
+            MonthYear = t.MonthYear
+        }).FirstOrDefault();
+        return new BudgetServiceResult<BudgetResponse>(true, "Budget retrieved successfully", budget!);
+    }
 }
 
 public class BudgetServiceResult

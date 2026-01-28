@@ -37,11 +37,11 @@ public class BudgetController : ControllerBase
     }
 
     [Authorize]
-    [HttpPut("editbudget")]
-    public IActionResult EditBudget([FromBody] EditBudget request)
+    [HttpPut("editbudget/{tid}")]
+    public IActionResult EditBudget([FromBody] EditBudget request, int tid)
     {
         int id = userContext.GetUserId();
-        var result = budgetService.EditBudget(id,request);
+        var result = budgetService.EditBudget(id,tid,request);
         if (!result.Success)
         {
             return BadRequest(new{Message= result.Message});
@@ -51,12 +51,12 @@ public class BudgetController : ControllerBase
     }
 
     [Authorize]
-    [HttpDelete("deletebudget")]
-    public IActionResult DeleteBudget([FromBody] DeleteBudget request)
+    [HttpDelete("deletebudget/{tid}")]
+    public IActionResult DeleteBudget([FromBody] DeleteBudget request, int tid)
     {
         int id = userContext.GetUserId();
         
-        var result = budgetService.DeleteBudget(id,request);
+        var result = budgetService.DeleteBudget(id,tid,request);
         if (!result.Success)
         {
             return BadRequest(new{Message= result.Message});
@@ -78,5 +78,18 @@ public class BudgetController : ControllerBase
 
         return Ok(new { Message = result.Message, Data = result.Data });
     }
-    
+    [Authorize]
+    [HttpGet("getbudgetbyid/{tid}")]
+    public IActionResult GetBudgetById(int tid)
+    {
+        int id = userContext.GetUserId();
+        
+        var result = budgetService.GetBudgetById(id,tid);
+        if(!result.Success)
+        {
+            return BadRequest(new{Message= result.Message});
+        }
+        return Ok(new { Message = result.Message, Data = result.Data });
+    }
+
 }
