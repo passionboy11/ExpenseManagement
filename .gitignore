@@ -135,6 +135,7 @@ Thumbs.db
 *.sqlproj
 *.cachefile
 *.dbmdl
+*.DS_Store
 *.jfm
 *.pfx
 *.DotSettings.user
