@@ -7,7 +7,7 @@ using ExpenseManagement.Infrastructure;
 using ExpenseManagement.Services;
 
 var builder = WebApplication.CreateBuilder(args);
-
+var frontendOrigin = builder.Configuration["FrontendOrigin"] ?? "http://localhost:5173";
 // Add services to the container.
 builder.Services.AddControllers();
 
@@ -17,6 +17,7 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowReactApp",
         policy => policy.WithOrigins("http://localhost:5173")
+            .WithOrigins(frontendOrigin)
             .AllowAnyHeader()
             .AllowAnyMethod()
             .AllowCredentials());

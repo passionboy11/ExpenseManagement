@@ -57,13 +57,23 @@ namespace ExpenseManagement.Controllers
             var token = tokenProvider.GenerateToken(user);
             response.AccessToken = token.AccessToken;
 
-            // Generate refresh token
-            response.RefreshToken = token.RefreshToken.Token;
 
             dataAccess.DisableUserTokenByEmail(request.Email);
             dataAccess.InsertRefreshtoken(token.RefreshToken, request.Email);
+            
+            Response.Cookies.Append("refreshToken", token.RefreshToken.Token, new CookieOptions
+            {
+                HttpOnly =true,
+                Secure = true,
+                SameSite = SameSiteMode.None,
+                Expires = token.RefreshToken.Expires,
+                Path = "/"
+            });
 
-            return Ok(response);
+            return Ok(new AuthResponse
+            {
+                AccessToken = token.AccessToken,
+            });
         }
 
         [HttpPost("refresh-token")]
@@ -90,9 +100,22 @@ namespace ExpenseManagement.Controllers
 
             dataAccess.DisableUserToken(refreshToken);
             dataAccess.InsertRefreshtoken(token.RefreshToken, currentUser.Email);
-            return Ok(response);
+            
+            Response.Cookies.Append("refreshToken", token.RefreshToken.Token, new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = true,
+                SameSite = SameSiteMode.None,
+                Expires = token.RefreshToken.Expires,
+                Path = "/"
+            });
+            
+            return Ok(new AuthResponse
+            {
+                AccessToken = token.AccessToken,
+            });
 
-        }
+        }   
 
         [HttpPost("logout")]
         public ActionResult Logout()
@@ -101,6 +124,7 @@ namespace ExpenseManagement.Controllers
             if (refreshToken != null)
             {
                 dataAccess.DisableUserToken(refreshToken);
+                Response.Cookies.Delete("refreshToken");
             }
 
             return Ok();

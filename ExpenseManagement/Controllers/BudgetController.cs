@@ -65,7 +65,7 @@ public class BudgetController : ControllerBase
     }
 
     [Authorize]
-    [HttpGet("getbudget")]
+    [HttpGet("viewbudget")]
     public IActionResult GetBudget()
     {
         int id = userContext.GetUserId();

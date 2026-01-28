@@ -63,7 +63,7 @@ public class TokenProvider
                 new Claim(ClaimTypes.Role, userAccount.Role)
             ]), 
             
-            Expires = DateTime.Now.AddSeconds(600),
+            Expires = DateTime.Now.AddSeconds(20),
             SigningCredentials = credentials,
             Issuer = configuration["JWT:Issuer"],
             Audience = configuration["JWT:Audience"],

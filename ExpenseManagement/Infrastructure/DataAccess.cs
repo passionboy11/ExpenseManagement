@@ -121,11 +121,18 @@ namespace ExpenseManagement.Infrastructure
                 request.Date
             });
             Console.WriteLine($"Rows affected: {result}");
+            decimal change = request.IsExpense ? -request.Amount : request.Amount;
+            UpdateUserBalance(userId, change);
             return result > 0;
         }
 
-        public bool EditTransaction(EditTransactionRequest request, int userId,int tid)
+        public bool EditTransaction(EditTransactionRequest request, int userId, int tid)
         {
+            var old = connection.QuerySingleOrDefault<Transaction>(
+                "SELECT Amount, IsExpense FROM Transactions WHERE Id = @Tid AND UserId = @UserId",
+                new { Tid = tid, UserId = userId }
+            );
+
             var sql = @"UPDATE Transactions SET Amount = @Amount, 
                                                 IsExpense= @IsExpense, 
                                                 Category = @Category, 
@@ -136,7 +143,7 @@ namespace ExpenseManagement.Infrastructure
                                                 WHERE UserId = @UserId AND Id = @tid";
             var result = connection.Execute(sql, new
             {
-                Tid =tid,
+                Tid = tid,
                 request.Id,
                 UserId = userId,
                 request.Amount,
@@ -145,13 +152,25 @@ namespace ExpenseManagement.Infrastructure
                 request.Description,
                 request.PaymentMethod,
                 request.IsRecurring,
-                
+
             });
-            return result > 0;
+            if (result > 0 && old != null)
+            {
+                // Subtract old value, add new value
+                decimal oldChange = old.IsExpense ? -old.Amount : old.Amount;
+                decimal newChange = request.IsExpense ? -request.Amount : request.Amount;
+                decimal diff = newChange - oldChange;
+                UpdateUserBalance(userId, diff);
+            }
+            return result >0;
         }
 
         public bool DeleteTransaction( int userId,int tid)
         {
+            var old = connection.QuerySingleOrDefault<Transaction>(
+                "SELECT Amount, IsExpense FROM Transactions WHERE Id = @Tid AND UserId = @UserId",
+                new { Tid = tid, UserId = userId }
+            );
             var sql = @"DELETE FROM Transactions WHERE  UserId = @UserId AND Id = @Tid";
             var result = connection.Execute(sql,new
             {
@@ -161,8 +180,14 @@ namespace ExpenseManagement.Infrastructure
             Console.WriteLine($"Deleting Transaction Id={tid} for UserId={userId}");
             Console.WriteLine($"Rows affected: {result}");
             
-            return result > 0;
-            
+            if(result > 0 && old != null)
+            {
+                decimal change = old.IsExpense ? old.Amount : -old.Amount; // Reverse effect
+                UpdateUserBalance(userId, -change); // reverse old transaction
+            }
+
+            return result >0;
+
         }   
 
         public IEnumerable<Transaction> ReadTransaction( int  userId)
@@ -314,8 +339,6 @@ namespace ExpenseManagement.Infrastructure
                 WHERE UserId = @UserId AND Category = @Category";
             return connection.QuerySingleOrDefault<decimal>(sql, new { UserId = userId, Category = category });
         }
-        
-        
         
     }
 }
