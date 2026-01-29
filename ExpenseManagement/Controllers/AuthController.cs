@@ -24,12 +24,10 @@ namespace ExpenseManagement.Controllers
         {
             string hashedPassword = BCrypt.Net.BCrypt.HashPassword(request.Password);
             string role = string.IsNullOrWhiteSpace(request.Role) ? "User" : request.Role;
-            var result = authRepository.RegisterUser(request.Email, hashedPassword,role);
+            var result = authRepository.RegisterUser(request.Email, hashedPassword, role);
             if (result)
             {
-
-                return Ok(new {message = "User Registered Successfully"});
-
+                return Ok(new { message = "User Registered Successfully" });
             }
             else
             {
