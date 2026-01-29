@@ -8,15 +8,15 @@ namespace ExpenseManagement.Controllers
     [ApiController]
     public class AuthController : ControllerBase
     {
-        private readonly DataAccess dataAccess;
         private readonly TokenProvider tokenProvider;
+        private readonly  IAuthRepository authRepository;
 
         // Controller depends on DataAccess for db operation
         // This is injected via Dependency Injection (DI)
-        public AuthController(DataAccess dataAccess, TokenProvider tokenProvider)
+        public AuthController(IAuthRepository authRepository, TokenProvider tokenProvider)
         {
-            this.dataAccess = dataAccess;
             this.tokenProvider = tokenProvider;
+            this.authRepository = authRepository;
         }
 
         [HttpPost("register")]
@@ -24,13 +24,11 @@ namespace ExpenseManagement.Controllers
         {
             string hashedPassword = BCrypt.Net.BCrypt.HashPassword(request.Password);
             string role = string.IsNullOrWhiteSpace(request.Role) ? "User" : request.Role;
-            var result = dataAccess.RegisterUser(request.Email, hashedPassword,role);
+            var result = authRepository.RegisterUser(request.Email, hashedPassword,role);
             if (result)
             {
 
                 return Ok(new {message = "User Registered Successfully"});
-
-                return Ok("User created successfully");
 
             }
             else
@@ -45,7 +43,7 @@ namespace ExpenseManagement.Controllers
         {
             AuthResponse response = new AuthResponse();
 
-            var user = dataAccess.FindUserByEmail(request.Email);
+            var user = authRepository.FindUserByEmail(request.Email);
             if (user == null)
                 return BadRequest("User is not found");
 
@@ -58,8 +56,8 @@ namespace ExpenseManagement.Controllers
             response.AccessToken = token.AccessToken;
 
 
-            dataAccess.DisableUserTokenByEmail(request.Email);
-            dataAccess.InsertRefreshtoken(token.RefreshToken, request.Email);
+            authRepository.DisableUserTokenByEmail(request.Email);
+            authRepository.InsertRefreshtoken(token.RefreshToken, request.Email);
             
             Response.Cookies.Append("refreshToken", token.RefreshToken.Token, new CookieOptions
             {
@@ -87,10 +85,10 @@ namespace ExpenseManagement.Controllers
                 return BadRequest("RefreshToken is empty");
             }
 
-            var isValid = dataAccess.IsRefreshTokenValid(refreshToken);
+            var isValid = authRepository.IsRefreshTokenValid(refreshToken);
             if (!isValid)
                 return BadRequest("RefreshToken is invalid");
-            var currentUser = dataAccess.FindUserByToken(refreshToken);
+            var currentUser = authRepository.FindUserByToken(refreshToken);
             if (currentUser == null)
                 return BadRequest("User is not found");
 
@@ -98,8 +96,8 @@ namespace ExpenseManagement.Controllers
             response.AccessToken = token.AccessToken;
             response.RefreshToken = token.RefreshToken.Token;
 
-            dataAccess.DisableUserToken(refreshToken);
-            dataAccess.InsertRefreshtoken(token.RefreshToken, currentUser.Email);
+            authRepository.DisableUserToken(refreshToken);
+            authRepository.InsertRefreshtoken(token.RefreshToken, currentUser.Email);
             
             Response.Cookies.Append("refreshToken", token.RefreshToken.Token, new CookieOptions
             {
@@ -123,7 +121,7 @@ namespace ExpenseManagement.Controllers
             var refreshToken = Request.Cookies["refreshToken"];
             if (refreshToken != null)
             {
-                dataAccess.DisableUserToken(refreshToken);
+                authRepository.DisableUserToken(refreshToken);
                 Response.Cookies.Delete("refreshToken");
             }
             

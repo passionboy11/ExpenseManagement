@@ -45,13 +45,17 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 builder.Services.AddAuthorization();
 
 // Service registrations
+builder.Services.AddScoped<IDbConnectionFactory, DbConnectionFactory>();
+builder.Services.AddScoped<IAuthRepository, AuthRepository>();
+builder.Services.AddScoped<IBudgetRepository, BudgetRepository>();
+builder.Services.AddScoped<ITransactionRepository, TransactionRepository>();
+builder.Services.AddScoped<IReminderRepository, ReminderRepository>();
 builder.Services.AddScoped<IBudgetService, BudgetService>();
 builder.Services.AddScoped<ITransactionService, TransactionService>();
 builder.Services.AddScoped<IReminderService, ReminderService>();
 builder.Services.AddHttpContextAccessor(); // this is required
 builder.Services.AddScoped<IUserContext, UserContext>();
 builder.Services.AddScoped<IAdminService, AdminService>();
-builder.Services.AddScoped<DataAccess>();
 builder.Services.AddScoped<TokenProvider>();
 
 var app = builder.Build();

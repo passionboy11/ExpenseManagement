@@ -15,16 +15,15 @@ public interface IReminderService
 
 public class ReminderService:IReminderService
 {
-    private readonly DataAccess dataAccess;
-
-    public ReminderService(DataAccess dataAccess)
+    private readonly IReminderRepository reminderRepository;
+    public ReminderService(IReminderRepository reminderRepository)
     {
-        this.dataAccess = dataAccess;
+        this.reminderRepository = reminderRepository;
     }
 
     public ReminderServiceResult CreateReminder(CreateReminderRequest request, int userId)
     {
-        var success = dataAccess.CreateReminder(request, userId);
+        var success = reminderRepository.CreateReminder(request, userId);
         if (!success)
         {
             return new ReminderServiceResult(false,"Reminder creation failed");
@@ -34,7 +33,7 @@ public class ReminderService:IReminderService
 
     public ReminderServiceResult EditReminder(EditReminderRequest request, int userId, int rid)
     {
-        var success = dataAccess.EditReminder(request, userId, rid);
+        var success = reminderRepository.EditReminder(request, userId, rid);
         if(!success)
             return new ReminderServiceResult(false,"Reminder edit failed");
         
@@ -43,7 +42,7 @@ public class ReminderService:IReminderService
 
     public ReminderServiceResult DeleteReminder(int userId, int rid)
     {
-        var success = dataAccess.DeleteReminder(userId, rid);
+        var success = reminderRepository.DeleteReminder(userId, rid);
         if (!success)
         {
             return new ReminderServiceResult(false,"Reminder deletion failed");
@@ -53,7 +52,7 @@ public class ReminderService:IReminderService
 
     public ReminderServiceResult<List<ReminderResponse>> GetReminder(int userId)
     {
-        var success = dataAccess.GetReminder(userId);
+        var success = reminderRepository.GetReminder(userId);
         if (!success.Any())
         {
             return new ReminderServiceResult<List<ReminderResponse>>(false,"Reminder retrieval failed");
@@ -71,7 +70,7 @@ public class ReminderService:IReminderService
     }
     public ReminderServiceResult<ReminderResponse> GetReminderById(int userId,int rid)
     {
-        var success = dataAccess.GetReminderById(userId, rid);
+        var success = reminderRepository.GetReminderById(userId, rid);
         if (!success.Any())
         {
             return new ReminderServiceResult<ReminderResponse>(false,"Reminder retrieval failed");

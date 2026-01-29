@@ -1,6 +1,7 @@
 using ExpenseManagement.DTO;
 using ExpenseManagement.Infrastructure;
 
+
 namespace ExpenseManagement.Services;
 
 //
@@ -17,21 +18,25 @@ public interface ITransactionService
 // decoupling
 public class TransactionService: ITransactionService
 {
-    private readonly DataAccess dataAccess;
+    private readonly ITransactionRepository transactionRepository;
+    private readonly IBudgetRepository budgetRepository;
 
-    public TransactionService(DataAccess dataAccess)
+    public TransactionService(ITransactionRepository transactionRepository, IBudgetRepository budgetRepository)
     {
-        this.dataAccess = dataAccess;
+        this.transactionRepository = transactionRepository;
+        this.budgetRepository = budgetRepository;
     }
 
     public TransactionServiceResult CreateTransaction(CreateTransactionRequest request, int userId)
     {
-        var success = dataAccess.CreateTransaction(request, userId);
+
+
+        var success = transactionRepository.CreateTransaction(request, userId);
         if (!success)
             return new TransactionServiceResult(false, "Transaction creation failed");
 //// remove this 
         decimal amountChange = request.IsExpense ? -request.Amount : request.Amount;
-        var balanceUpdated = dataAccess.UpdateUserBalance(userId, amountChange);
+        var balanceUpdated = transactionRepository.UpdateUserBalance(userId, amountChange);
         if (!balanceUpdated)
             return new TransactionServiceResult(false, "Failed to update balance");
 
@@ -40,8 +45,8 @@ public class TransactionService: ITransactionService
         // Only check budget limit for expense transactions
         if (request.IsExpense)
         {
-            var totalExpenses = dataAccess.GetBudgetUsage(userId, request.Category);
-            var budgetLimit = dataAccess.GetBudgetLimit(userId, request.Category);
+            var totalExpenses = budgetRepository.GetBudgetUsage(userId, request.Category);
+            var budgetLimit = budgetRepository.GetBudgetLimit(userId, request.Category);
 
             if (budgetLimit > 0)
             {
@@ -61,19 +66,28 @@ public class TransactionService: ITransactionService
     }
 
 
-    public TransactionServiceResult EditTransaction(EditTransactionRequest request, int userId,int tid)
+    public TransactionServiceResult EditTransaction(EditTransactionRequest request, int userId, int tid)
     {
-        var success = dataAccess.EditTransaction(request, userId,tid);
-        if (!success)
-            return new TransactionServiceResult(false, "Transaction Edit failed");
-        
-        return new TransactionServiceResult(true,"Edited successfully");
+        try
+        {
+            var success = transactionRepository.EditTransaction(request, userId, tid);
+
+            if (!success)
+                return new TransactionServiceResult(false, "No transaction was updated");
+
+            return new TransactionServiceResult(true, "Transaction edited successfully");
+        }
+        catch (Exception ex)
+        {
+            return new TransactionServiceResult(false, $"Database error: {ex.Message}");
+        }
     }
+
 
     public TransactionServiceResult DeleteTransaction(int userId, int tid)
     {
         
-        var success = dataAccess.DeleteTransaction(userId,tid);
+        var success = transactionRepository.DeleteTransaction(userId,tid);
         if (!success)
             return new TransactionServiceResult(false, "Transaction Delete failed");
         
@@ -82,7 +96,7 @@ public class TransactionService: ITransactionService
 
     public TransactionServiceResult<List<TransactionResponse>> ReadTransaction(int userId)
     {
-        var result  = dataAccess.ReadTransaction(userId);
+        var result  = transactionRepository.ReadTransaction(userId);
         if (!result.Any())
         {
             return new TransactionServiceResult<List<TransactionResponse>>(false, "Transaction not found");
@@ -103,7 +117,7 @@ public class TransactionService: ITransactionService
 
     public TransactionServiceResult<TransactionResponse> GetTransactionById(int userId,int tid)
     {
-        var result = dataAccess.GetTransactionById(userId,tid);
+        var result = transactionRepository.GetTransactionById(userId,tid);
         if (!result.Any())
         {
             return new TransactionServiceResult<TransactionResponse>(false, "Transaction not found");
@@ -126,7 +140,7 @@ public class TransactionService: ITransactionService
     public TransactionServiceResult<BalanceResponse> GetBalance(int userId)
     {
         // Suppose this returns decimal
-        var balanceAmount = dataAccess.GetUserBalance(userId); 
+        var balanceAmount = transactionRepository.GetUserBalance(userId); 
         return new TransactionServiceResult<BalanceResponse>(
             true, 
             "Balance retrieved successfully", 

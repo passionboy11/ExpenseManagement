@@ -1,12 +1,12 @@
 using ExpenseManagement.DTO;
 using ExpenseManagement.Infrastructure;
-using Microsoft.AspNetCore.Http.HttpResults;
+
 
 namespace ExpenseManagement.Services;
 
 public interface IBudgetService
 {
-    BudgetServiceResult CreateBudget(int userId,  Budget request);
+    BudgetServiceResult CreateBudget(int userId,  CreateBudget request);
     BudgetServiceResult EditBudget(int userId,int tid,  EditBudget request);
     BudgetServiceResult DeleteBudget(int userId, int tid,  DeleteBudget request);
     BudgetServiceResult <BudgetResponse> GetBudgetById(int id,int tid);
@@ -15,16 +15,16 @@ public interface IBudgetService
 
 public class BudgetService:IBudgetService
 {
-   private readonly DataAccess dataAccess;
+   private readonly IBudgetRepository budgetRepository;
 
-   public BudgetService(DataAccess dataAccess)
+   public BudgetService(IBudgetRepository budgetRepository)
    {
-       this.dataAccess = dataAccess;
+       this.budgetRepository = budgetRepository;
    }
 
-   public BudgetServiceResult CreateBudget(int userId, Budget request)
+   public BudgetServiceResult CreateBudget(int userId, CreateBudget request)
    {
-       var success = dataAccess.CreateBudget(request, userId);
+       var success = budgetRepository.CreateBudget(request, userId);
        if (!success)
            return new BudgetServiceResult(false, "Error creating budget");
        
@@ -33,7 +33,7 @@ public class BudgetService:IBudgetService
 
    public BudgetServiceResult EditBudget(int userId,int tid, EditBudget request)
    {
-       var success = dataAccess.EditBudget(request, userId,tid);
+       var success = budgetRepository.EditBudget(request, userId,tid);
        if(!success)
            return new BudgetServiceResult(false, "Error editing budget");
        
@@ -42,7 +42,7 @@ public class BudgetService:IBudgetService
 
    public BudgetServiceResult DeleteBudget(int userId, int tid, DeleteBudget request)
    {
-       var success = dataAccess.DeleteBudget(request, userId,tid);
+       var success = budgetRepository.DeleteBudget(request, userId,tid);
        if(!success)
            return new BudgetServiceResult(false, "Error deleting budget");
        
@@ -52,7 +52,7 @@ public class BudgetService:IBudgetService
 
    public BudgetServiceResult<List<BudgetResponse>> ReadBudget(int userId)
    {
-       var success = dataAccess.ReadBudget(userId);
+       var success = budgetRepository.ReadBudget(userId);
        if(!success.Any())
            return new BudgetServiceResult<List<BudgetResponse>>(false,"Error reading budget");
        var budget = success.Select(t => new BudgetResponse
@@ -70,7 +70,7 @@ public class BudgetService:IBudgetService
 
     public BudgetServiceResult<BudgetResponse> GetBudgetById(int id, int tid)
     {
-       var result = dataAccess.GetBudgetById(id, tid);
+       var result = budgetRepository.GetBudgetById(id, tid);
         if (!result.Any())
         {
             return new BudgetServiceResult<BudgetResponse>(false, "Budget not found");

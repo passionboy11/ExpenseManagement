@@ -11,16 +11,20 @@ public interface IAdminService
 }
 public class AdminService:IAdminService
 {
-    private readonly DataAccess _dataAccess;
+    private readonly IBudgetRepository budgetRepository;
+    private readonly ITransactionRepository transactionRepository;
+    private readonly IAuthRepository authRepository;
 
-    public AdminService(DataAccess dataAccess)
+    public AdminService(ITransactionRepository transactionRepository, IBudgetRepository budgetRepository, IAuthRepository authRepository )
     {
-        _dataAccess = dataAccess;
+        this.transactionRepository = transactionRepository;
+        this.budgetRepository = budgetRepository;
+        this.authRepository = authRepository;
     }
 
     public AdminServiceResult ReadAllTransactions()
     {
-        var result = _dataAccess.ReadAllTransactions();
+        var result = transactionRepository.ReadAllTransactions();
         if (!result.Any())
         {
             return new AdminServiceResult(false,"No transactions found");
@@ -31,7 +35,7 @@ public class AdminService:IAdminService
 
     public AdminServiceResult ReadAllBudgets()
     {
-        var result = _dataAccess.ReadAllBudgets();
+        var result = budgetRepository.ReadAllBudgets();
         if (!result.Any())
         {
             return new AdminServiceResult(false, "No budgets found");
@@ -41,7 +45,7 @@ public class AdminService:IAdminService
    
     public AdminServiceResult<List<UsersDTO>> ViewAllUsers()
     {
-        var result = _dataAccess.ViewAllUsers();
+        var result = authRepository.ViewAllUsers();
         if (!result.Any())
         {
             return new AdminServiceResult<List<UsersDTO>>(false,"No users found");

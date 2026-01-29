@@ -53,7 +53,7 @@ public class TransactionController : ControllerBase
      {
       return BadRequest(new{Message= result.Message});
      }
-     return Ok(new{Message="Edited successfully"});
+     return Ok(new{Message= result.Message });
     }
    
     [Authorize]
@@ -68,7 +68,7 @@ public class TransactionController : ControllerBase
       {
        return BadRequest(new{Message= result.Message});
       }
-      return Ok(new{Message="Edited successfully"});
+      return Ok(new{Message= result.Message });
     }
    
     [Authorize]
