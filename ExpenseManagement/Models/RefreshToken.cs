@@ -1,10 +1,23 @@
-namespace ExpenseManagement.Models;
+using System;
+using System.ComponentModel.DataAnnotations;
 
-public class RefreshToken
+namespace ExpenseManagement.Models
 {
-    public required string Token { get; set; }
-    public DateTime CreatedDate { get; set; }
-    public DateTime Expires { get; set; }
-    public bool Enabled { get; set; }
-    public string Email { get; set; }
+    public class RefreshToken
+    {
+        [Required(ErrorMessage = "Token is required.")]
+        public string Token { get; set; } = null!; // required non-nullable
+
+        [Required]
+        public DateTime CreatedDate { get; set; }
+
+        [Required]
+        public DateTime Expires { get; set; }
+
+        public bool Enabled { get; set; } = true;
+
+        [Required(ErrorMessage = "Email is required.")]
+        [EmailAddress(ErrorMessage = "Invalid email format.")]
+        public string Email { get; set; } = null!;
+    }
 }

@@ -35,7 +35,7 @@ public class BudgetController : ControllerBase
 
     [Authorize]
     [HttpPut("editbudget/{tid}")]
-    public IActionResult EditBudget([FromBody] EditBudget request, int tid)
+    public IActionResult EditBudget(EditBudget request, [FromRoute] int tid)
     {
         int id = userContext.GetUserId();
         var result = budgetService.EditBudget(id,tid,request);
@@ -49,11 +49,11 @@ public class BudgetController : ControllerBase
 
     [Authorize]
     [HttpDelete("deletebudget/{tid}")]
-    public IActionResult DeleteBudget([FromBody] DeleteBudget request, int tid)
+    public IActionResult DeleteBudget([FromRoute] int tid)
     {
         int id = userContext.GetUserId();
         
-        var result = budgetService.DeleteBudget(id,tid,request);
+        var result = budgetService.DeleteBudget(id,tid);
         if (!result.Success)
         {
             return BadRequest(new{Message= result.Message});
@@ -77,7 +77,7 @@ public class BudgetController : ControllerBase
     }
     [Authorize]
     [HttpGet("getbudgetbyid/{tid}")]
-    public IActionResult GetBudgetById(int tid)
+    public IActionResult GetBudgetById([FromRoute] int tid)
     {
         int id = userContext.GetUserId();
         

@@ -7,6 +7,7 @@ public interface IAdminService
 {
     AdminServiceResult ReadAllTransactions();
     AdminServiceResult  ReadAllBudgets();
+    AdminServiceResult ReadAllReminders();
     public AdminServiceResult<List<UsersDTO>> ViewAllUsers();
 }
 public class AdminService:IAdminService
@@ -14,12 +15,14 @@ public class AdminService:IAdminService
     private readonly IBudgetRepository budgetRepository;
     private readonly ITransactionRepository transactionRepository;
     private readonly IAuthRepository authRepository;
+    private readonly IReminderRepository reminderRepository;
 
-    public AdminService(ITransactionRepository transactionRepository, IBudgetRepository budgetRepository, IAuthRepository authRepository )
+    public AdminService(ITransactionRepository transactionRepository, IBudgetRepository budgetRepository, IAuthRepository authRepository, IReminderRepository reminderRepository)
     {
         this.transactionRepository = transactionRepository;
         this.budgetRepository = budgetRepository;
         this.authRepository = authRepository;
+        this.reminderRepository = reminderRepository;
     }
 
     public AdminServiceResult ReadAllTransactions()
@@ -41,6 +44,15 @@ public class AdminService:IAdminService
             return new AdminServiceResult(false, "No budgets found");
         }
         return  new AdminServiceResult(true,"The budgets are",result);
+    }
+    public AdminServiceResult ReadAllReminders()
+    {
+        var result = reminderRepository.ReadAllReminders();
+        if (!result.Any())
+        {
+            return new AdminServiceResult(false, "No budgets found");
+        }
+        return new AdminServiceResult(true, "The budgets are", result);
     }
    
     public AdminServiceResult<List<UsersDTO>> ViewAllUsers()

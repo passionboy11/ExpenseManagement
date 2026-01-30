@@ -37,10 +37,12 @@ private readonly IUserContext userContext;
     }
 
     [Authorize]
-    [HttpPost("editreminder/{rid}")]
-    public IActionResult EditReminder(EditReminderRequest request, int rid)
+    [HttpPut("editreminder/{rid}")]
+    public IActionResult EditReminder([FromBody] EditReminderRequest request, int rid)
     {
         int id = userContext.GetUserId();
+        System.Diagnostics.Debug.WriteLine($"EditReminder received - Status: {request.Status}");
+
         var result = reminderService.EditReminder(request, id, rid);
         if (!result.Success)
         {
@@ -70,7 +72,7 @@ private readonly IUserContext userContext;
     }
 
     [Authorize]
-    [HttpGet("getreminder/{rid}")]
+    [HttpGet("getreminderbyid/{rid}")]
     public IActionResult GetReminderById(int rid)
     {
         int id = userContext.GetUserId();

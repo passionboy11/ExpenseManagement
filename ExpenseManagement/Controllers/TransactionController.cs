@@ -58,7 +58,7 @@ public class TransactionController : ControllerBase
    
     [Authorize]
     [HttpDelete("deletetransaction/{tid}")]
-    public IActionResult DeleteTransaction( int tid)
+    public IActionResult DeleteTransaction([FromRoute] int tid)
     {
       int id = userContext.GetUserId();
      
@@ -87,7 +87,7 @@ public class TransactionController : ControllerBase
      return Ok(new { Message = result.Message, Data = result.Data });
     }
 
-    [Authorize]
+    [Authorize] 
     [HttpGet("gettransactionbyid/{tid}")]
     public IActionResult GetTransactionById([FromRoute]int tid)
     {

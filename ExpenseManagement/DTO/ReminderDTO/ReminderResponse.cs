@@ -4,6 +4,7 @@ namespace ExpenseManagement.DTO.ReminderDTO;
 
 public class ReminderResponse
 { 
+    public int Id { get; set; }
     public string BillName { get; set; }
     public DateTime DueDate { get; set; }
     public string PaymentMethod { get; set; }

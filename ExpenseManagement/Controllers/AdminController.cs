@@ -56,5 +56,18 @@ public class AdminController:ControllerBase
 
         return Ok(new { Message = result.Message, Data = result.Data });
     }
-    
+
+    [Authorize(Roles = "Admin")]
+    [HttpGet("readallreminders")]
+    public IActionResult ReadAllReminders()
+    {
+        var result = adminService.ReadAllReminders();
+        if (!result.Success)
+        {
+            return BadRequest(new { Message = result.Message });
+        }
+
+        return Ok(new { Message = result.Message, Data = result.Data });
+    }
+
 }
