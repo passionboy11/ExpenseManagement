@@ -55,7 +55,6 @@ public interface IAuthRepository
         public bool InsertRefreshtoken(RefreshToken refreshToken, string email)
         {
             using var connection = connectionFactory.CreateConnection();
-        connection.Open();
         var sql =
                 "INSERT INTO RefreshToken (Token, CreatedDate, Expires, Enabled, Email) VALUES (@token, @createdDate, @expires, @enabled, @email)";
 

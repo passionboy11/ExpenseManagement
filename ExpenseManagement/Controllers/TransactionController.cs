@@ -1,16 +1,10 @@
-using System.Security.Claims;
 using ExpenseManagement.DTO;
-using ExpenseManagement.Infrastructure;
-using ExpenseManagement.Models;
 using ExpenseManagement.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ExpenseManagement.Controllers;
-// system claim esma garne ani tanne 
-// usercontext class 
-// iusercontext interface 
-// get user email role bata sidhai name dios
+
 [Route("[controller]")]
 [ApiController]
 public class TransactionController : ControllerBase
@@ -24,7 +18,7 @@ public class TransactionController : ControllerBase
    }
  
  
-  [Authorize(Roles = "Admin,User")]
+  [Authorize]
   [HttpPost("createtransaction")]
   public IActionResult CreateTransaction([FromBody] CreateTransactionRequest request)
    {
