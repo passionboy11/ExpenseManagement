@@ -1,5 +1,6 @@
 using ExpenseManagement.DTO;
 using ExpenseManagement.Infrastructure;
+using ExpenseManagement.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ExpenseManagement.Controllers
@@ -8,109 +9,77 @@ namespace ExpenseManagement.Controllers
     [ApiController]
     public class AuthController : ControllerBase
     {
-        private readonly TokenProvider tokenProvider;
         private readonly  IAuthRepository authRepository;
-
-        // Controller depends on DataAccess for db operation
-        // This is injected via Dependency Injection (DI)
-        public AuthController(IAuthRepository authRepository, TokenProvider tokenProvider)
+        private readonly IAuthService authService;
+        
+        public AuthController(IAuthRepository authRepository, IAuthService authService)
         {
-            this.tokenProvider = tokenProvider;
             this.authRepository = authRepository;
+            this.authService = authService;
         }
 
         [HttpPost("register")]
         public ActionResult Register([FromBody] RegisterRequest request)
         {
-            string hashedPassword = BCrypt.Net.BCrypt.HashPassword(request.Password);
-            string role = string.IsNullOrWhiteSpace(request.Role) ? "User" : request.Role;
-            var result = authRepository.RegisterUser(request.Email, hashedPassword, role);
-            if (result)
+            var result = authService.RegisterUser(request.Email, request.Password, request.Role);
+            if (!result.Success)
             {
-                return Ok(new { message = "User Registered Successfully" });
+                return BadRequest(new{Message= result.Message});
             }
-            else
+            return Ok(new
             {
-                return BadRequest("Failed to register user");
-            }
-
+                Message = result.Message
+            });
         }
 
         [HttpPost("Login")]
         public ActionResult<AuthResponse> Login(AuthRequest request)
         {
-            AuthResponse response = new AuthResponse();
-
-            var user = authRepository.FindUserByEmail(request.Email);
-            if (user == null)
-                return BadRequest("User is not found");
-
-            var verifyPassword = BCrypt.Net.BCrypt.Verify(request.Password, user.Password);
-            if (!verifyPassword)
-                return BadRequest("Wrong Password");
-
-            // Generate Access token
-            var token = tokenProvider.GenerateToken(user);
-            response.AccessToken = token.AccessToken;
-
-
-            authRepository.DisableUserTokenByEmail(request.Email);
-            authRepository.InsertRefreshtoken(token.RefreshToken, request.Email);
-            
-            Response.Cookies.Append("refreshToken", token.RefreshToken.Token, new CookieOptions
+            var result = authService.Login(request.Email, request.Password);
+            if (!result.Success)
+            {
+                return BadRequest(new{Message= result.Message});
+            }
+            Response.Cookies.Append("refreshToken", result.Data.RefreshToken, new CookieOptions
             {
                 HttpOnly =true,
                 Secure = true,
                 SameSite = SameSiteMode.None,
-                Expires = token.RefreshToken.Expires,
+                Expires = result.Data.Expires,
                 Path = "/"
             });
 
             return Ok(new AuthResponse
             {
-                AccessToken = token.AccessToken,
+                AccessToken = result.Data.AccessToken,
+                RefreshToken = result.Data.RefreshToken
             });
         }
 
         [HttpPost("refresh-token")]
         public ActionResult<AuthResponse> RefreshToken()
         {
-            AuthResponse response = new AuthResponse();
-
             var refreshToken = Request.Cookies["refreshToken"];
-            if (string.IsNullOrEmpty(refreshToken))
-            {
-                return BadRequest("RefreshToken is empty");
-            }
-
-            var isValid = authRepository.IsRefreshTokenValid(refreshToken);
-            if (!isValid)
-                return BadRequest("RefreshToken is invalid");
-            var currentUser = authRepository.FindUserByToken(refreshToken);
-            if (currentUser == null)
-                return BadRequest("User is not found");
-
-            var token = tokenProvider.GenerateToken(currentUser);
-            response.AccessToken = token.AccessToken;
-            response.RefreshToken = token.RefreshToken.Token;
-
-            authRepository.DisableUserToken(refreshToken);
-            authRepository.InsertRefreshtoken(token.RefreshToken, currentUser.Email);
             
-            Response.Cookies.Append("refreshToken", token.RefreshToken.Token, new CookieOptions
+            var result = authService.RefreshToken(refreshToken);
+            if (!result.Success)
+            {
+                return BadRequest(new{Message= result.Message});
+            }
+            Response.Cookies.Append("refreshToken", result.Data.RefreshToken, new CookieOptions
             {
                 HttpOnly = true,
                 Secure = true,
                 SameSite = SameSiteMode.None,
-                Expires = token.RefreshToken.Expires,
+                Expires =result.Data.Expires,
                 Path = "/"
             });
             
             return Ok(new AuthResponse
             {
-                AccessToken = token.AccessToken,
+                AccessToken = result.Data.AccessToken,
+                RefreshToken = result.Data.RefreshToken
             });
-
         }   
 
         [HttpPost("logout")]
