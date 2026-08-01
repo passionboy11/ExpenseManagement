@@ -6,11 +6,11 @@ namespace ExpenseManagement.Services;
 public interface IAdminService
 {
     AdminServiceResult ReadAllTransactions();
-    AdminServiceResult  ReadAllBudgets();
+    AdminServiceResult ReadAllBudgets();
     AdminServiceResult ReadAllReminders();
     public AdminServiceResult<List<UsersDTO>> ViewAllUsers();
 }
-public class AdminService:IAdminService
+public class AdminService : IAdminService
 {
     private readonly IBudgetRepository budgetRepository;
     private readonly ITransactionRepository transactionRepository;
@@ -28,46 +28,33 @@ public class AdminService:IAdminService
     public AdminServiceResult ReadAllTransactions()
     {
         var result = transactionRepository.ReadAllTransactions();
-        if (!result.Any())
-        {
-            return new AdminServiceResult(false,"No transactions found");
-        }
-        
-        return new AdminServiceResult (true,"The transactions are",result);
+        var message = result.Any() ? "The transactions are" : "No transactions found";
+        return new AdminServiceResult(true, message, result);
     }
 
     public AdminServiceResult ReadAllBudgets()
     {
         var result = budgetRepository.ReadAllBudgets();
-        if (!result.Any())
-        {
-            return new AdminServiceResult(false, "No budgets found");
-        }
-        return  new AdminServiceResult(true,"The budgets are",result);
+        var message = result.Any() ? "The budgets are" : "No budgets found";
+        return new AdminServiceResult(true, message, result);
     }
     public AdminServiceResult ReadAllReminders()
     {
         var result = reminderRepository.ReadAllReminders();
-        if (!result.Any())
-        {
-            return new AdminServiceResult(false, "No budgets found");
-        }
-        return new AdminServiceResult(true, "The budgets are", result);
+        var message = result.Any() ? "The reminders are" : "No reminders found";
+        return new AdminServiceResult(true, message, result);
     }
-   
+
     public AdminServiceResult<List<UsersDTO>> ViewAllUsers()
     {
         var result = authRepository.ViewAllUsers();
-        if (!result.Any())
-        {
-            return new AdminServiceResult<List<UsersDTO>>(false,"No users found");
-        }
-        var users = result.Select(t=>new UsersDTO
+        var users = result.Select(t => new UsersDTO
         {
             Email = t.Email,
             Role = t.Role,
         }).ToList();
-        return new AdminServiceResult<List<UsersDTO>>(true,"The users are",users);
+        var message = users.Any() ? "The users are" : "No users found";
+        return new AdminServiceResult<List<UsersDTO>>(true, message, users);
     }
 }
 
@@ -75,9 +62,9 @@ public class AdminServiceResult<T>
 {
     public bool Success { get; set; }
     public string Message { get; set; }
-    public T?  Data { get; set; }
+    public T? Data { get; set; }
 
-    public AdminServiceResult(bool success, string message, T? data =default)
+    public AdminServiceResult(bool success, string message, T? data = default)
     {
         Success = success;
         Message = message;

@@ -66,7 +66,6 @@ public class BudgetController : ControllerBase
     public IActionResult GetBudget()
     {
         int id = userContext.GetUserId();
-        Console.WriteLine(id);
         var result = budgetService.ReadBudget(id);
         if(!result.Success)
         {

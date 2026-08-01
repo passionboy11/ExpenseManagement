@@ -1,8 +1,10 @@
-using System.Text.Json.Serialization;
 using ExpenseManagement.ExceptionHandler;
 using ExpenseManagement.Extension;
 using ExpenseManagement.Infrastructure;
 using ExpenseManagement.Services;
+using Microsoft.AspNetCore.RateLimiting;
+using System.Text.Json.Serialization;
+using System.Threading.RateLimiting;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -39,11 +41,23 @@ builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<IUserContext, UserContext>();
 builder.Services.AddScoped<IAdminService, AdminService>();
 builder.Services.AddScoped<TokenProvider>();
+builder.Services.AddRateLimiter(options =>
+{
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+    options.AddFixedWindowLimiter("fixed", limiterOptions =>
+    {
+        limiterOptions.PermitLimit = 100;
+        limiterOptions.Window = TimeSpan.FromMinutes(1);
+        limiterOptions.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
+        limiterOptions.QueueLimit = 0;
+    });
+});
 
 var app = builder.Build();
 
-app.UseCors("AllowReactApp");
 
+app.UseCors("AllowReactApp");
+app.UseRateLimiter();
 app.UseExceptionHandler(opt => { });
 
 if (app.Environment.IsDevelopment())
@@ -59,6 +73,7 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 
-app.MapControllers();
+app.MapControllers()
+    .RequireRateLimiting("fixed");
 
 app.Run();
