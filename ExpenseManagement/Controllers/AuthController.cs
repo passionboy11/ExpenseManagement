@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace ExpenseManagement.Controllers
 {
-    [Route("[controller]")]
+    [Route("api/[controller]")]
     [ApiController]
     public class AuthController : ControllerBase
     {
@@ -32,7 +32,7 @@ namespace ExpenseManagement.Controllers
             });
         }
 
-        [HttpPost("Login")]
+        [HttpPost("login")]
         public ActionResult<AuthResponse> Login(AuthRequest request)
         {
             var result = authService.Login(request.Email, request.Password);

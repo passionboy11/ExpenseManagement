@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace ExpenseManagement.Controllers;
 
-[Route("[controller]")]
+[Route("api/[controller]")]
 [ApiController]
 public class TransactionController : ControllerBase
 {
@@ -19,7 +19,7 @@ public class TransactionController : ControllerBase
  
  
   [Authorize]
-  [HttpPost("createtransaction")]
+  [HttpPost("transactions")]
   public IActionResult CreateTransaction([FromBody] CreateTransactionRequest request)
    {
      int id = userContext.GetUserId();
@@ -37,7 +37,7 @@ public class TransactionController : ControllerBase
    }
    
     [Authorize]
-    [HttpPut("edittransaction/{tid}")]
+    [HttpPut("transactions/{tid}")]
     public IActionResult EditTransaction([FromBody] EditTransactionRequest request,int tid)
     {
      int id = userContext.GetUserId();
@@ -51,7 +51,7 @@ public class TransactionController : ControllerBase
     }
    
     [Authorize]
-    [HttpDelete("deletetransaction/{tid}")]
+    [HttpDelete("transactions/{tid}")]
     public IActionResult DeleteTransaction([FromRoute] int tid)
     {
       int id = userContext.GetUserId();
@@ -66,7 +66,7 @@ public class TransactionController : ControllerBase
     }
    
     [Authorize]
-    [HttpGet("readtransaction")]
+    [HttpGet("transactions")]
     public IActionResult ReadTransaction()
     {
      int id = userContext.GetUserId();
@@ -82,7 +82,7 @@ public class TransactionController : ControllerBase
     }
 
     [Authorize] 
-    [HttpGet("gettransactionbyid/{tid}")]
+    [HttpGet("transactions/{tid}")]
     public IActionResult GetTransactionById([FromRoute]int tid)
     {
      int id = userContext.GetUserId();
@@ -96,7 +96,7 @@ public class TransactionController : ControllerBase
     }
     
     [Authorize]
-    [HttpGet("getbalance")]
+    [HttpGet("balance")]
     public IActionResult GetBalance()
     {
       int id = userContext.GetUserId();

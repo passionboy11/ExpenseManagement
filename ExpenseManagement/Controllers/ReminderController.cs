@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace ExpenseManagement.Controllers;
 
 [ApiController]
-[Route("[controller]")]
+[Route("api/[controller]")]
 public class ReminderController : ControllerBase
 {
     
@@ -21,7 +21,7 @@ private readonly IUserContext userContext;
     }
 
     [Authorize]
-    [HttpPost("createreminder")]
+    [HttpPost("reminders")]
     public IActionResult CreateReminder(CreateReminderRequest request)
     {
         int id = userContext.GetUserId();
@@ -37,7 +37,7 @@ private readonly IUserContext userContext;
     }
 
     [Authorize]
-    [HttpPut("editreminder/{rid}")]
+    [HttpPut("reminders/{rid}")]
     public IActionResult EditReminder([FromBody] EditReminderRequest request, int rid)
     {
         int id = userContext.GetUserId();
@@ -56,7 +56,7 @@ private readonly IUserContext userContext;
 
     }
     [Authorize]
-    [HttpDelete("deletereminder/{rid}")]
+    [HttpDelete("reminders/{rid}")]
     public IActionResult DeleteReminder(int rid)
     {
         int id = userContext.GetUserId();
@@ -72,7 +72,7 @@ private readonly IUserContext userContext;
     }
 
     [Authorize]
-    [HttpGet("getreminderbyid/{rid}")]
+    [HttpGet("reminders/{rid}")]
     public IActionResult GetReminderById(int rid)
     {
         int id = userContext.GetUserId();
@@ -87,7 +87,7 @@ private readonly IUserContext userContext;
     }
 
     [Authorize]
-    [HttpGet("getreminders")]
+    [HttpGet("reminders")]
     public IActionResult GetReminders()
     {
         int id =  userContext.GetUserId();

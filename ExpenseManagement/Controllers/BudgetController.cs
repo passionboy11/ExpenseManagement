@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace ExpenseManagement.Controllers;
 
-[Route("[controller]")]
+[Route("api/[controller]")]
 [ApiController]
 public class BudgetController : ControllerBase
 {
@@ -18,7 +18,7 @@ public class BudgetController : ControllerBase
     }
 
     [Authorize]
-    [HttpPost("createbudget")]
+    [HttpPost("budgets")]
     public IActionResult CreateBudget([FromBody] CreateBudget request)
     {
         int id = userContext.GetUserId();
@@ -34,7 +34,7 @@ public class BudgetController : ControllerBase
     }
 
     [Authorize]
-    [HttpPut("editbudget/{tid}")]
+    [HttpPut("budgets/{tid}")]
     public IActionResult EditBudget(EditBudget request, [FromRoute] int tid)
     {
         int id = userContext.GetUserId();
@@ -48,7 +48,7 @@ public class BudgetController : ControllerBase
     }
 
     [Authorize]
-    [HttpDelete("deletebudget/{tid}")]
+    [HttpDelete("budgets/{tid}")]
     public IActionResult DeleteBudget([FromRoute] int tid)
     {
         int id = userContext.GetUserId();
@@ -62,7 +62,7 @@ public class BudgetController : ControllerBase
     }
 
     [Authorize]
-    [HttpGet("viewbudget")]
+    [HttpGet("budgets")]
     public IActionResult GetBudget()
     {
         int id = userContext.GetUserId();
@@ -76,7 +76,7 @@ public class BudgetController : ControllerBase
         return Ok(new { Message = result.Message, Data = result.Data });
     }
     [Authorize]
-    [HttpGet("getbudgetbyid/{tid}")]
+    [HttpGet("budgets/{tid}")]
     public IActionResult GetBudgetById([FromRoute] int tid)
     {
         int id = userContext.GetUserId();

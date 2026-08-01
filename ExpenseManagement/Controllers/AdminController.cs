@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace ExpenseManagement.Controllers;
 
 
-[Route("[controller]")]
+[Route("api/[controller]")]
 [ApiController]
 public class AdminController:ControllerBase
 {
@@ -17,7 +17,7 @@ public class AdminController:ControllerBase
     }
     
     [Authorize(Roles = "Admin")]
-    [HttpGet("readalltransactions")]
+    [HttpGet("transactions")]
     public IActionResult ReadAllTransactions()
     {
         var result =  adminService.ReadAllTransactions();
@@ -30,7 +30,7 @@ public class AdminController:ControllerBase
     }
 
     [Authorize(Roles = "Admin")]
-    [HttpGet("readallbudgets")]
+    [HttpGet("budgets")]
     public IActionResult ReadAllBudgets()
     {
         var result = adminService.ReadAllBudgets();
@@ -44,7 +44,7 @@ public class AdminController:ControllerBase
     
 
     [Authorize(Roles = "Admin")]
-    [HttpGet("viewallusers")]
+    [HttpGet("users")]
     public IActionResult ViewAllUsers()
     {
         var result = adminService.ViewAllUsers();
@@ -57,7 +57,7 @@ public class AdminController:ControllerBase
     }
 
     [Authorize(Roles = "Admin")]
-    [HttpGet("readallreminders")]
+    [HttpGet("reminders")]
     public IActionResult ReadAllReminders()
     {
         var result = adminService.ReadAllReminders();
