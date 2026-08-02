@@ -15,10 +15,12 @@ public interface IReminderService
 public class ReminderService : IReminderService
 {
     private readonly IReminderRepository reminderRepository;
+    private readonly ILogger<ReminderService> logger;
 
-    public ReminderService(IReminderRepository reminderRepository)
+    public ReminderService(IReminderRepository reminderRepository, ILogger<ReminderService> logger)
     {
         this.reminderRepository = reminderRepository;
+        this.logger = logger;
     }
 
     public ReminderServiceResult CreateReminder(CreateReminderRequest request, int userId)
@@ -27,14 +29,14 @@ public class ReminderService : IReminderService
         {
             var success = reminderRepository.CreateReminder(request, userId);
             if (!success)
-                return new ReminderServiceResult(false, "Failed to create reminder. Please try again.");
+                return new ReminderServiceResult(false, "Failed to create reminder. Please try again.", ErrorType.Validation);
 
             return new ReminderServiceResult(true, "Reminder created successfully");
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"CreateReminder error: {ex.Message}");
-            return new ReminderServiceResult(false, "An error occurred while creating the reminder");
+            logger.LogError(ex, "CreateReminder error for user {UserId}", userId);
+            return new ReminderServiceResult(false, "An error occurred while creating the reminder", ErrorType.ServerError);
         }
     }
 
@@ -44,14 +46,14 @@ public class ReminderService : IReminderService
         {
             var success = reminderRepository.EditReminder(request, userId, rid);
             if (!success)
-                return new ReminderServiceResult(false, "Reminder not found or update failed");
+                return new ReminderServiceResult(false, "Reminder not found or update failed", ErrorType.NotFound);
 
             return new ReminderServiceResult(true, "Reminder updated successfully");
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"EditReminder error: {ex.Message}");
-            return new ReminderServiceResult(false, "An error occurred while updating the reminder");
+            logger.LogError(ex, "EditReminder error for user {UserId}, reminder {ReminderId}", userId, rid);
+            return new ReminderServiceResult(false, "An error occurred while updating the reminder", ErrorType.ServerError);
         }
     }
 
@@ -61,14 +63,14 @@ public class ReminderService : IReminderService
         {
             var success = reminderRepository.DeleteReminder(userId, rid);
             if (!success)
-                return new ReminderServiceResult(false, "Reminder not found or already deleted");
+                return new ReminderServiceResult(false, "Reminder not found or already deleted", ErrorType.NotFound);
 
             return new ReminderServiceResult(true, "Reminder deleted successfully");
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"DeleteReminder error: {ex.Message}");
-            return new ReminderServiceResult(false, "An error occurred while deleting the reminder");
+            logger.LogError(ex, "DeleteReminder error for user {UserId}, reminder {ReminderId}", userId, rid);
+            return new ReminderServiceResult(false, "An error occurred while deleting the reminder", ErrorType.ServerError);
         }
     }
 
@@ -98,8 +100,8 @@ public class ReminderService : IReminderService
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"GetReminder error: {ex.Message}");
-            return new ReminderServiceResult<List<ReminderResponse>>(false, "An error occurred while retrieving reminders");
+            logger.LogError(ex, "GetReminder error for user {UserId}", userId);
+            return new ReminderServiceResult<List<ReminderResponse>>(false, "An error occurred while retrieving reminders", errorType: ErrorType.ServerError);
         }
     }
 
@@ -110,7 +112,7 @@ public class ReminderService : IReminderService
             var result = reminderRepository.GetReminderById(userId, rid);
             if (!result.Any())
             {
-                return new ReminderServiceResult<ReminderResponse>(false, "Reminder not found");
+                return new ReminderServiceResult<ReminderResponse>(false, "Reminder not found", errorType: ErrorType.NotFound);
             }
 
             var reminder = result.Select(r => new ReminderResponse
@@ -128,8 +130,8 @@ public class ReminderService : IReminderService
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"GetReminderById error: {ex.Message}");
-            return new ReminderServiceResult<ReminderResponse>(false, "An error occurred while retrieving the reminder");
+            logger.LogError(ex, "GetReminderById error for user {UserId}, reminder {ReminderId}", userId, rid);
+            return new ReminderServiceResult<ReminderResponse>(false, "An error occurred while retrieving the reminder", errorType: ErrorType.ServerError);
         }
     }
 }
@@ -138,11 +140,13 @@ public class ReminderServiceResult
 {
     public bool Success { get; }
     public string Message { get; }
+    public ErrorType ErrorType { get; }
 
-    public ReminderServiceResult(bool success, string message)
+    public ReminderServiceResult(bool success, string message, ErrorType errorType = ErrorType.Validation)
     {
         Success = success;
         Message = message;
+        ErrorType = errorType;
     }
 }
 
@@ -151,11 +155,13 @@ public class ReminderServiceResult<T>
     public bool Success { get; set; }
     public string Message { get; set; }
     public T? Data { get; set; }
+    public ErrorType ErrorType { get; set; }
 
-    public ReminderServiceResult(bool success, string message, T? data = default)
+    public ReminderServiceResult(bool success, string message, T? data = default, ErrorType errorType = ErrorType.Validation)
     {
         Success = success;
         Message = message;
         Data = data;
+        ErrorType = errorType;
     }
 }

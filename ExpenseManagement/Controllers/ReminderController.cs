@@ -11,10 +11,10 @@ namespace ExpenseManagement.Controllers;
 [Route("api/[controller]")]
 public class ReminderController : ControllerBase
 {
-    
-private readonly IReminderService reminderService;
-private readonly IUserContext userContext;
-    public ReminderController (IReminderService reminderService, IUserContext userContext)
+
+    private readonly IReminderService reminderService;
+    private readonly IUserContext userContext;
+    public ReminderController(IReminderService reminderService, IUserContext userContext)
     {
         this.reminderService = reminderService;
         this.userContext = userContext;
@@ -28,7 +28,7 @@ private readonly IUserContext userContext;
         var result = reminderService.CreateReminder(request, id);
         if (!result.Success)
         {
-            return BadRequest(new{Message = result.Message});
+            return this.ToErrorResult(result.ErrorType, result.Message);
         }
         return Ok(new
         {
@@ -46,7 +46,7 @@ private readonly IUserContext userContext;
         var result = reminderService.EditReminder(request, id, rid);
         if (!result.Success)
         {
-            return BadRequest(new { Message = result.Message });
+            return this.ToErrorResult(result.ErrorType, result.Message);
         }
 
         return Ok(new
@@ -63,7 +63,7 @@ private readonly IUserContext userContext;
         var result = reminderService.DeleteReminder(id, rid);
         if (!result.Success)
         {
-            return BadRequest(new { Message=result.Message });
+            return this.ToErrorResult(result.ErrorType, result.Message);
         }
         return Ok(new
         {
@@ -78,11 +78,12 @@ private readonly IUserContext userContext;
         int id = userContext.GetUserId();
         var result = reminderService.GetReminderById(id, rid);
         if (!result.Success)
-            return BadRequest(new { Message = result.Message });
+            return this.ToErrorResult(result.ErrorType, result.Message);
 
         return Ok(new
         {
-            Message = result.Message,Data = result.Data
+            Message = result.Message,
+            Data = result.Data
         });
     }
 
@@ -90,11 +91,11 @@ private readonly IUserContext userContext;
     [HttpGet("reminders")]
     public IActionResult GetReminders()
     {
-        int id =  userContext.GetUserId();
+        int id = userContext.GetUserId();
         var result = reminderService.GetReminder(id);
         if (!result.Success)
         {
-            return BadRequest(new { Message = result.Message });
+            return this.ToErrorResult(result.ErrorType, result.Message);
         }
 
         return Ok(new { Message = result.Message, Data = result.Data });

@@ -1,4 +1,5 @@
 using ExpenseManagement.DTO;
+using ExpenseManagement.Infrastructure;
 using ExpenseManagement.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -14,7 +15,7 @@ public class BudgetController : ControllerBase
     public BudgetController(IBudgetService budgetService, IUserContext userContext)
     {
         this.budgetService = budgetService;
-        this.userContext  = userContext;
+        this.userContext = userContext;
     }
 
     [Authorize]
@@ -22,14 +23,14 @@ public class BudgetController : ControllerBase
     public IActionResult CreateBudget([FromBody] CreateBudget request)
     {
         int id = userContext.GetUserId();
-        
-        var result = budgetService.CreateBudget(id,request);
+
+        var result = budgetService.CreateBudget(id, request);
 
         if (!result.Success)
         {
-            return BadRequest(new{Message= result.Message});
+            return this.ToErrorResult(result.ErrorType, result.Message);
         }
-        return Ok(new{Message= result.Message});
+        return Ok(new { Message = result.Message });
 
     }
 
@@ -38,12 +39,12 @@ public class BudgetController : ControllerBase
     public IActionResult EditBudget(EditBudget request, [FromRoute] int tid)
     {
         int id = userContext.GetUserId();
-        var result = budgetService.EditBudget(id,tid,request);
+        var result = budgetService.EditBudget(id, tid, request);
         if (!result.Success)
         {
-            return BadRequest(new{Message= result.Message});
+            return this.ToErrorResult(result.ErrorType, result.Message);
         }
-        return Ok(new{Message= result.Message });
+        return Ok(new { Message = result.Message });
 
     }
 
@@ -52,13 +53,13 @@ public class BudgetController : ControllerBase
     public IActionResult DeleteBudget([FromRoute] int tid)
     {
         int id = userContext.GetUserId();
-        
-        var result = budgetService.DeleteBudget(id,tid);
+
+        var result = budgetService.DeleteBudget(id, tid);
         if (!result.Success)
         {
-            return BadRequest(new{Message= result.Message});
+            return this.ToErrorResult(result.ErrorType, result.Message);
         }
-        return Ok(new{Message= result.Message });
+        return Ok(new { Message = result.Message });
     }
 
     [Authorize]
@@ -67,9 +68,9 @@ public class BudgetController : ControllerBase
     {
         int id = userContext.GetUserId();
         var result = budgetService.ReadBudget(id);
-        if(!result.Success)
+        if (!result.Success)
         {
-            return BadRequest(new{Message= result.Message});
+            return this.ToErrorResult(result.ErrorType, result.Message);
         }
 
         return Ok(new { Message = result.Message, Data = result.Data });
@@ -79,11 +80,11 @@ public class BudgetController : ControllerBase
     public IActionResult GetBudgetById([FromRoute] int tid)
     {
         int id = userContext.GetUserId();
-        
-        var result = budgetService.GetBudgetById(id,tid);
-        if(!result.Success)
+
+        var result = budgetService.GetBudgetById(id, tid);
+        if (!result.Success)
         {
-            return BadRequest(new{Message= result.Message});
+            return this.ToErrorResult(result.ErrorType, result.Message);
         }
         return Ok(new { Message = result.Message, Data = result.Data });
     }

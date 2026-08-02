@@ -63,12 +63,14 @@ public class AdminServiceResult<T>
     public bool Success { get; set; }
     public string Message { get; set; }
     public T? Data { get; set; }
+    public ErrorType ErrorType { get; set; }
 
-    public AdminServiceResult(bool success, string message, T? data = default)
+    public AdminServiceResult(bool success, string message, T? data = default, ErrorType errorType = ErrorType.Validation)
     {
         Success = success;
         Message = message;
         Data = data;
+        ErrorType = errorType;
     }
 }
 public class AdminServiceResult
@@ -76,11 +78,13 @@ public class AdminServiceResult
     public bool Success { get; set; }
     public string Message { get; set; }
     public object? Data { get; set; }
+    public ErrorType ErrorType { get; set; }
 
-    public AdminServiceResult(bool success, string message, object? data = null)
+    public AdminServiceResult(bool success, string message, object? data = null, ErrorType errorType = ErrorType.Validation)
     {
         Success = success;
         Message = message;
         Data = data;
+        ErrorType = errorType;
     }
 }

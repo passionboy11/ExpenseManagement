@@ -9,9 +9,9 @@ namespace ExpenseManagement.Controllers
     [ApiController]
     public class AuthController : ControllerBase
     {
-        private readonly  IAuthRepository authRepository;
+        private readonly IAuthRepository authRepository;
         private readonly IAuthService authService;
-        
+
         public AuthController(IAuthRepository authRepository, IAuthService authService)
         {
             this.authRepository = authRepository;
@@ -21,10 +21,10 @@ namespace ExpenseManagement.Controllers
         [HttpPost("register")]
         public ActionResult Register([FromBody] RegisterRequest request)
         {
-            var result = authService.RegisterUser(request.Email, request.Password, request.Role);
+            var result = authService.RegisterUser(request.Email, request.Password, request.Role ?? string.Empty);
             if (!result.Success)
             {
-                return BadRequest(new{Message= result.Message});
+                return this.ToErrorResult(result.ErrorType, result.Message);
             }
             return Ok(new
             {
@@ -36,23 +36,32 @@ namespace ExpenseManagement.Controllers
         public ActionResult<AuthResponse> Login(AuthRequest request)
         {
             var result = authService.Login(request.Email, request.Password);
-            if (!result.Success)
+            if (!result.Success || result.Data is null)
             {
-                return BadRequest(new{Message= result.Message});
+                return this.ToErrorResult(result.ErrorType, result.Message);
             }
-            Response.Cookies.Append("refreshToken", result.Data.RefreshToken, new CookieOptions
+
+            var data = result.Data;
+
+            if (string.IsNullOrEmpty(data.RefreshToken))
             {
-                HttpOnly =true,
+                // Shouldn't happen on a successful login - treat as a server-side failure
+                // rather than pass a null value into the cookie writer.
+                return this.ToErrorResult(ErrorType.ServerError, "Login succeeded but no refresh token was issued.");
+            }
+
+            Response.Cookies.Append("refreshToken", data.RefreshToken, new CookieOptions
+            {
+                HttpOnly = true,
                 Secure = true,
                 SameSite = SameSiteMode.None,
-                Expires = result.Data.Expires,
+                Expires = data.Expires,
                 Path = "/"
             });
 
             return Ok(new AuthResponse
             {
-                AccessToken = result.Data.AccessToken,
-                RefreshToken = result.Data.RefreshToken
+                AccessToken = data.AccessToken
             });
         }
 
@@ -60,27 +69,39 @@ namespace ExpenseManagement.Controllers
         public ActionResult<AuthResponse> RefreshToken()
         {
             var refreshToken = Request.Cookies["refreshToken"];
-            
-            var result = authService.RefreshToken(refreshToken);
-            if (!result.Success)
+
+            if (string.IsNullOrEmpty(refreshToken))
             {
-                return BadRequest(new{Message= result.Message});
+                return this.ToErrorResult(ErrorType.Unauthorized, "No refresh token was provided.");
             }
-            Response.Cookies.Append("refreshToken", result.Data.RefreshToken, new CookieOptions
+
+            var result = authService.RefreshToken(refreshToken);
+            if (!result.Success || result.Data is null)
+            {
+                return this.ToErrorResult(result.ErrorType, result.Message);
+            }
+
+            var data = result.Data;
+
+            if (string.IsNullOrEmpty(data.RefreshToken))
+            {
+                return this.ToErrorResult(ErrorType.ServerError, "Token refresh succeeded but no refresh token was issued.");
+            }
+
+            Response.Cookies.Append("refreshToken", data.RefreshToken, new CookieOptions
             {
                 HttpOnly = true,
                 Secure = true,
                 SameSite = SameSiteMode.None,
-                Expires =result.Data.Expires,
+                Expires = data.Expires,
                 Path = "/"
             });
-            
+
             return Ok(new AuthResponse
             {
-                AccessToken = result.Data.AccessToken,
-                RefreshToken = result.Data.RefreshToken
+                AccessToken = data.AccessToken
             });
-        }   
+        }
 
         [HttpPost("logout")]
         public ActionResult Logout()
@@ -91,7 +112,7 @@ namespace ExpenseManagement.Controllers
                 authRepository.DisableUserToken(refreshToken);
                 Response.Cookies.Delete("refreshToken");
             }
-            
+
             return Ok();
         }
 

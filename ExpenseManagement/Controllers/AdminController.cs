@@ -1,3 +1,4 @@
+using ExpenseManagement.Infrastructure;
 using ExpenseManagement.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -7,7 +8,7 @@ namespace ExpenseManagement.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
-public class AdminController:ControllerBase
+public class AdminController : ControllerBase
 {
     private readonly IAdminService adminService;
 
@@ -15,18 +16,18 @@ public class AdminController:ControllerBase
     {
         this.adminService = adminService;
     }
-    
+
     [Authorize(Roles = "Admin")]
     [HttpGet("transactions")]
     public IActionResult ReadAllTransactions()
     {
-        var result =  adminService.ReadAllTransactions();
-        if(!result.Success)
+        var result = adminService.ReadAllTransactions();
+        if (!result.Success)
         {
-            return BadRequest(new{Message= result.Message});
+            return this.ToErrorResult(result.ErrorType, result.Message);
         }
 
-        return Ok(new { Message = result.Message,Data=result.Data });
+        return Ok(new { Message = result.Message, Data = result.Data });
     }
 
     [Authorize(Roles = "Admin")]
@@ -36,12 +37,12 @@ public class AdminController:ControllerBase
         var result = adminService.ReadAllBudgets();
         if (!result.Success)
         {
-            return BadRequest(new { Message = result.Message });
+            return this.ToErrorResult(result.ErrorType, result.Message);
         }
 
         return Ok(new { Message = result.Message, Data = result.Data });
     }
-    
+
 
     [Authorize(Roles = "Admin")]
     [HttpGet("users")]
@@ -50,7 +51,7 @@ public class AdminController:ControllerBase
         var result = adminService.ViewAllUsers();
         if (!result.Success)
         {
-            return BadRequest(new { Message = result.Message });
+            return this.ToErrorResult(result.ErrorType, result.Message);
         }
 
         return Ok(new { Message = result.Message, Data = result.Data });
@@ -63,7 +64,7 @@ public class AdminController:ControllerBase
         var result = adminService.ReadAllReminders();
         if (!result.Success)
         {
-            return BadRequest(new { Message = result.Message });
+            return this.ToErrorResult(result.ErrorType, result.Message);
         }
 
         return Ok(new { Message = result.Message, Data = result.Data });
