@@ -60,12 +60,8 @@ app.UseCors("AllowReactApp");
 app.UseRateLimiter();
 app.UseExceptionHandler(opt => { });
 
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
-
+app.UseSwagger();
+app.UseSwaggerUI();
 app.UseHttpsRedirection();
 
 // **Order matters**: Authentication must come before Authorization

@@ -66,15 +66,23 @@ public static class ServiceExtension
     public static IServiceCollection AddCorsPolicy(this IServiceCollection services, IConfiguration configuration)
     {
         var frontendOrigin = configuration["FrontendOrigin"] ?? "http://localhost:5173";
+
         services.AddCors(options =>
         {
             options.AddPolicy("AllowReactApp",
-                policy => policy.WithOrigins("http://localhost:5173")
-                    .WithOrigins(frontendOrigin)
-                    .AllowAnyHeader()
-                    .AllowAnyMethod()
-                    .AllowCredentials());
+                policy =>
+                {
+                    policy
+                        .WithOrigins(
+                            "http://localhost:5173",
+                            frontendOrigin
+                        )
+                        .AllowAnyHeader()
+                        .AllowAnyMethod()
+                        .AllowCredentials();
+                });
         });
+
         return services;
     }
 }
