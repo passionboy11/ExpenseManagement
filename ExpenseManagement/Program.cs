@@ -6,7 +6,28 @@ using Microsoft.AspNetCore.RateLimiting;
 using System.Text.Json.Serialization;
 using System.Threading.RateLimiting;
 
-var builder = WebApplication.CreateBuilder(args);
+var builder = WebApplication.CreateBuilder(new WebApplicationOptions
+{
+    Args = args
+});
+
+
+// Disable appsettings.json file watcher for Render Linux containers
+builder.Configuration.Sources.Clear();
+
+builder.Configuration
+    .AddJsonFile(
+        "appsettings.json",
+        optional: false,
+        reloadOnChange: false
+    )
+    .AddJsonFile(
+        $"appsettings.{builder.Environment.EnvironmentName}.json",
+        optional: true,
+        reloadOnChange: false
+    )
+    .AddEnvironmentVariables();
+
 
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
@@ -14,26 +35,25 @@ builder.Services.AddControllers()
         options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
     });
 
-builder.Services.AddScoped<AdminService>();
 
-// CORS
 builder.Services.AddCorsPolicy(builder.Configuration);
 
-// Global Exception Handler
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 
-// Swagger
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerAuth();
 
-// Authentication
+
 builder.Services.AddJwtAuthentication(builder.Configuration);
 
 builder.Services.AddAuthorization();
 
 
-// Repositories
+// Database
 builder.Services.AddScoped<IDbConnectionFactory, DbConnectionFactory>();
+
+
+// Repositories
 builder.Services.AddScoped<IAuthRepository, AuthRepository>();
 builder.Services.AddScoped<IBudgetRepository, BudgetRepository>();
 builder.Services.AddScoped<ITransactionRepository, TransactionRepository>();
@@ -61,16 +81,14 @@ builder.Services.AddRateLimiter(options =>
 
     options.AddFixedWindowLimiter("fixed", limiterOptions =>
     {
-        // Maximum requests allowed
         limiterOptions.PermitLimit = 100;
 
-        // Time window
         limiterOptions.Window = TimeSpan.FromMinutes(1);
 
-        // Requests waiting in queue
-        limiterOptions.QueueLimit = 0;
+        limiterOptions.QueueProcessingOrder =
+            QueueProcessingOrder.OldestFirst;
 
-        limiterOptions.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
+        limiterOptions.QueueLimit = 0;
     });
 });
 
@@ -78,15 +96,10 @@ builder.Services.AddRateLimiter(options =>
 var app = builder.Build();
 
 
-// CORS must come before authentication/authorization
 app.UseCors("AllowReactApp");
 
-
-// Rate limiter middleware
 app.UseRateLimiter();
 
-
-// Exception handling
 app.UseExceptionHandler(opt => { });
 
 
@@ -98,13 +111,11 @@ app.UseSwaggerUI();
 app.UseHttpsRedirection();
 
 
-// Authentication must come before Authorization
 app.UseAuthentication();
 
 app.UseAuthorization();
 
 
-// Apply rate limit to all controllers
 app.MapControllers()
     .RequireRateLimiting("fixed");
 
