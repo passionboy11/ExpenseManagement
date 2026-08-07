@@ -120,7 +120,6 @@ _ReSharper*/
 Thumbs.db
 
 # Docker
-**/[Dd]ockerfile
 **/[Dd]ocker-compose*.yml
 .dockerignore
 

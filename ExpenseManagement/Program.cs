@@ -102,6 +102,7 @@ app.UseRateLimiter();
 
 app.UseExceptionHandler(opt => { });
 
+app.MapGet("/health", () => Results.Ok());
 
 // Swagger
 app.UseSwagger();
